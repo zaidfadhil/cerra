@@ -1,3 +1,3 @@
 package goatq
 
-type RabbitMQOptions struct{}
+type RabbitBackend struct{}
