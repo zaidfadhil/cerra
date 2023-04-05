@@ -1,4 +1,4 @@
-package goatq
+package redisq
 
 type RedisBackend struct{}
 

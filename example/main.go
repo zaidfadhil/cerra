@@ -1,12 +1,9 @@
-package goatq_test
+package main
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"runtime"
-	"testing"
-	"time"
 
 	"github.com/zaidfadhil/goatq"
 )
@@ -21,6 +18,7 @@ func newTask(title string, num int) (*goatq.Task, error) {
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("set:", payload)
 	return goatq.NewTask("yo:queue", payload), nil
 }
 
@@ -29,15 +27,16 @@ func handleTask(ctx context.Context, t *goatq.Task) error {
 	if err := json.Unmarshal(t.Payload, &model); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v", err)
 	}
+	fmt.Println("get-1:", model.Num)
 	return nil
 }
 
-func Test(t *testing.T) {
-	PrintMemUsage()
+func main() {
+	m := goatq.NewManager()
 
 	queue := goatq.NewQueue(goatq.NewInMemoryBackend())
 
-	for i := 0; i < 1000000; i++ {
+	for i := 0; i < 10; i++ {
 		task, err := newTask("test-queue", i)
 		if err != nil {
 			fmt.Println(err)
@@ -53,22 +52,10 @@ func Test(t *testing.T) {
 
 	queue.Start()
 
-	PrintMemUsage()
+	m.OnShutdown(func() error {
+		queue.Close()
+		return nil
+	})
 
-	time.Sleep(2 * time.Second)
-
-	PrintMemUsage()
-}
-
-func PrintMemUsage() {
-	var m runtime.MemStats
-	runtime.ReadMemStats(&m)
-	fmt.Printf("Alloc = %v MiB", bToMb(m.Alloc))
-	fmt.Printf("\tTotalAlloc = %v MiB", bToMb(m.TotalAlloc))
-	fmt.Printf("\tSys = %v MiB", bToMb(m.Sys))
-	fmt.Printf("\tNumGC = %v\n", m.NumGC)
-}
-
-func bToMb(b uint64) uint64 {
-	return b / 1024 / 1024
+	<-m.Done()
 }

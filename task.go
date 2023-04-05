@@ -6,15 +6,17 @@ type Task struct {
 	Name    string
 	Payload []byte
 
-	retry   int
-	timeout time.Duration
-	delay   time.Duration
+	retryCount int
+	timeout    time.Duration
+	delay      time.Duration
 }
 
 func NewTask(name string, payload []byte) *Task {
 	return &Task{
 		Name:    name,
 		Payload: payload,
+
+		timeout: 60 * time.Minute,
 	}
 }
 
