@@ -8,7 +8,7 @@ import (
 )
 
 type Backend interface {
-	Push(task *Task) error
+	Enqueue(task *Task) error
 	Request() (*Task, error)
 	Close() error
 }
@@ -36,7 +36,7 @@ func NewQueue(client Backend) *Queue {
 }
 
 func (q *Queue) Enqueue(t *Task) error {
-	return q.Backend.Push(t)
+	return q.Backend.Enqueue(t)
 }
 
 func (q *Queue) Close() error {

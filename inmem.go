@@ -19,7 +19,7 @@ func NewInMemoryBackend() *inMemoryBackend {
 	}
 }
 
-func (b *inMemoryBackend) Push(task *Task) error {
+func (b *inMemoryBackend) Enqueue(task *Task) error {
 	b.Lock()
 	defer b.Unlock()
 
@@ -56,12 +56,6 @@ func (b *inMemoryBackend) Request() (*Task, error) {
 
 func (b *inMemoryBackend) Close() error {
 	return nil
-}
-
-func (b *inMemoryBackend) Size() int {
-	b.Lock()
-	defer b.Unlock()
-	return len(b.tasks)
 }
 
 func (b *inMemoryBackend) resize(size int) {
