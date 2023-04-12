@@ -1,10 +1,13 @@
 package goatq
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 type Task struct {
-	Name    string
-	Payload []byte
+	Name    string `json:"name"`
+	Payload []byte `json:"payload"`
 
 	retryCount int
 	timeout    time.Duration
@@ -18,6 +21,10 @@ func NewTask(name string, payload []byte) *Task {
 
 		timeout: 60 * time.Minute,
 	}
+}
+
+func (t *Task) Encode() ([]byte, error) {
+	return json.Marshal(t)
 }
 
 // func (t *Task) Delay(time time.Duration) *Task {

@@ -72,7 +72,7 @@ func (m *Manager) shutdown() {
 		func(run func() error) {
 			m.runningWaitGroup.Run(func() {
 				if err := f(); err != nil {
-					fmt.Println("eeee", err)
+					fmt.Println(err)
 				}
 			})
 		}(f)

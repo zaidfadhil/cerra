@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/zaidfadhil/goatq"
 )
@@ -36,7 +38,7 @@ func main() {
 
 	queue := goatq.NewQueue(goatq.NewInMemoryBackend())
 
-	for i := 0; i < 10; i++ {
+	for i := 0; i < 1000000; i++ {
 		task, err := newTask("test-queue", i)
 		if err != nil {
 			fmt.Println(err)
@@ -58,4 +60,11 @@ func main() {
 	})
 
 	<-m.Done()
+}
+
+func RandomString(length int) string {
+	rand.Seed(time.Now().UnixNano())
+	b := make([]byte, length+2)
+	rand.Read(b)
+	return fmt.Sprintf("%x", b)[2 : length+2]
 }
