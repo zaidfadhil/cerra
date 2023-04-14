@@ -27,6 +27,10 @@ func (t *Task) Encode() ([]byte, error) {
 	return json.Marshal(t)
 }
 
+func (t *Task) ToMap() map[string]interface{} {
+	return map[string]interface{}{"name": t.Name, "payload": t.Payload}
+}
+
 // func (t *Task) Delay(time time.Duration) *Task {
 // 	t.delay = time
 // 	return t

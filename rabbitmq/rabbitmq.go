@@ -3,7 +3,6 @@ package rabbitmq
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"sync"
 
@@ -39,12 +38,12 @@ func NewRabbitMQBackend(options RabbiMQOptions) *rabbiMQBackend {
 
 	b.connection, err = amqp.Dial(options.Address)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	b.channel, err = b.connection.Channel()
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	err = b.channel.ExchangeDeclare(
@@ -57,7 +56,7 @@ func NewRabbitMQBackend(options RabbiMQOptions) *rabbiMQBackend {
 		nil,
 	)
 	if err != nil {
-		panic(err)
+		log.Fatal(err)
 	}
 
 	b.tasks = make(chan amqp.Delivery)
@@ -87,7 +86,7 @@ func (b *rabbiMQBackend) Enqueue(task *goatq.Task) error {
 	return err
 }
 
-func (b *rabbiMQBackend) Request() (*goatq.Task, error) {
+func (b *rabbiMQBackend) Dequeue() (*goatq.Task, error) {
 	err := b.consumer()
 	if err != nil {
 		return nil, goatq.ErrInActiveQueue
@@ -108,10 +107,11 @@ func (b *rabbiMQBackend) Close() (err error) {
 	b.sync.Do(func() {
 		close(b.stop)
 		if err = b.channel.Cancel(b.options.Queue, true); err != nil {
-			log.Println(err)
+			log.Fatal(err)
+
 		}
 		if err = b.connection.Close(); err != nil {
-			log.Println(err)
+			log.Fatal(err)
 		}
 	})
 	return err
@@ -128,7 +128,7 @@ func (b *rabbiMQBackend) consumer() (err error) {
 			nil,
 		)
 		if err != nil {
-			log.Println(err)
+			log.Fatal(err)
 			return
 		}
 
@@ -140,7 +140,7 @@ func (b *rabbiMQBackend) consumer() (err error) {
 			nil,
 		)
 		if err != nil {
-			log.Println(err)
+			log.Fatal(err)
 			return
 		}
 
@@ -154,8 +154,7 @@ func (b *rabbiMQBackend) consumer() (err error) {
 			nil,
 		)
 		if err != nil {
-			fmt.Println("c")
-			log.Println(err)
+			log.Fatal(err)
 			return
 		}
 

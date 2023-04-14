@@ -9,7 +9,7 @@ import (
 
 type Backend interface {
 	Enqueue(task *Task) error
-	Request() (*Task, error)
+	Dequeue() (*Task, error)
 	Close() error
 }
 
@@ -26,9 +26,9 @@ type Queue struct {
 	handleFuncs []func(context.Context, *Task) error
 }
 
-func NewQueue(client Backend) *Queue {
+func NewQueue(backend Backend) *Queue {
 	return &Queue{
-		Backend: client,
+		Backend: backend,
 		group:   newRoutineGroup(),
 		quit:    make(chan struct{}),
 		ready:   make(chan struct{}, 1),
@@ -76,7 +76,7 @@ func (q *Queue) start() {
 
 		q.group.Run(func() {
 			for {
-				task, err := q.Backend.Request()
+				task, err := q.Backend.Dequeue()
 				if err != nil {
 					return
 				}
