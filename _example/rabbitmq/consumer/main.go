@@ -30,5 +30,10 @@ func main() {
 
 	queue.Start()
 
+	m.OnShutdown(func() error {
+		queue.Close()
+		return nil
+	})
+
 	<-m.Done()
 }

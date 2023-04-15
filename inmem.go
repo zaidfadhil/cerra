@@ -34,7 +34,7 @@ func (b *inMemoryBackend) Enqueue(task *Task) error {
 	return nil
 }
 
-func (b *inMemoryBackend) Request() (*Task, error) {
+func (b *inMemoryBackend) Dequeue() (*Task, error) {
 	if len(b.tasks) == 0 {
 		return nil, ErrEmtpyQueue
 	}

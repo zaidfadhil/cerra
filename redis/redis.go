@@ -34,21 +34,27 @@ type redisBackend struct {
 	rdb   redis.Cmdable
 	tasks chan redis.XMessage
 
-	stop chan struct{}
-	exit chan struct{}
-	sync sync.Once
+	stop      chan struct{}
+	exit      chan struct{}
+	startSync sync.Once
+	stopSync  sync.Once
 }
 
 func NewRedisBackend(options RedisOptions) *redisBackend {
-	b := &redisBackend{}
-	b.options = options
+	b := &redisBackend{
+		stop:    make(chan struct{}),
+		exit:    make(chan struct{}),
+		tasks:   make(chan redis.XMessage),
+		options: options,
+	}
+	b.options.blockTime = 60 * time.Second
 
 	if b.options.Client != nil {
 		b.rdb = b.options.Client
 	} else if b.options.ConnectionString != "" {
 		options, err := redis.ParseURL(b.options.ConnectionString)
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf("error parsing redis connection string %v", err)
 		}
 		b.rdb = redis.NewClient(options)
 	} else if b.options.Address != "" {
@@ -69,7 +75,7 @@ func NewRedisBackend(options RedisOptions) *redisBackend {
 
 	_, err := b.rdb.Ping(context.Background()).Result()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("error connecting to redis %v", err)
 	}
 
 	b.stop = make(chan struct{})
@@ -108,9 +114,14 @@ func (b *redisBackend) Dequeue() (*goatq.Task, error) {
 }
 
 func (b *redisBackend) Close() error {
-	b.sync.Do(func() {
+	b.stopSync.Do(func() {
 		close(b.stop)
-		<-b.exit
+
+		select {
+		case <-b.exit:
+		case <-time.After(200 * time.Millisecond):
+		}
+
 		switch rediscon := b.rdb.(type) {
 		case *redis.Client:
 			rediscon.Close()
@@ -123,7 +134,7 @@ func (b *redisBackend) Close() error {
 }
 
 func (b *redisBackend) consumer() (err error) {
-	b.sync.Do(func() {
+	b.startSync.Do(func() {
 		ctx := context.Background()
 		err := b.rdb.XGroupCreateMkStream(
 			ctx,
@@ -132,7 +143,7 @@ func (b *redisBackend) consumer() (err error) {
 			"0",
 		).Err()
 		if err != nil {
-			log.Println(err)
+			log.Printf("error creating stream %v", err)
 		}
 
 		go b.fetch()
@@ -158,7 +169,8 @@ func (b *redisBackend) fetch() {
 			Block:    b.options.blockTime,
 		}).Result()
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("error reading redis stream %v", err)
+			continue
 		}
 
 		for _, result := range data {
@@ -166,6 +178,7 @@ func (b *redisBackend) fetch() {
 
 				select {
 				case b.tasks <- message:
+
 					err := b.rdb.XAck(
 						ctx,
 						b.options.Queue,
@@ -173,11 +186,27 @@ func (b *redisBackend) fetch() {
 						message.ID,
 					).Err()
 					if err != nil {
-						log.Println(err)
+						log.Printf("error message ack %v", err)
+					}
+
+					err = b.rdb.XDel(
+						ctx,
+						b.options.Queue,
+						message.ID,
+					).Err()
+					if err != nil {
+						log.Printf("error when deleting the message %v", err)
 					}
 				case <-b.stop:
-					//b.Enqueue()
+					err := b.rdb.XAdd(ctx, &redis.XAddArgs{
+						Stream: b.options.Queue,
+						Values: message.Values,
+					}).Err()
+					if err != nil {
+						log.Printf("error requeue the message %v", err)
+					}
 					close(b.exit)
+					return
 				}
 			}
 		}

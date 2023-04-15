@@ -2,7 +2,7 @@ package goatq
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"sync"
@@ -19,9 +19,11 @@ type Manager struct {
 	runAtShutdown     []func() error
 }
 
+var startOnce = sync.Once{}
+
 func NewManager() *Manager {
 	var manager Manager
-	var startOnce = sync.Once{}
+	//var startOnce = sync.Once{}
 	startOnce.Do(func() {
 		manager = Manager{
 			mutex:            &sync.RWMutex{},
@@ -47,15 +49,22 @@ func (m *Manager) waitSignal(ctx context.Context) {
 		syscall.SIGTSTP,
 	)
 	defer signal.Stop(c)
+
+	pid := syscall.Getpid()
+
 	for {
 		select {
 		case sig := <-c:
 			switch sig {
-			case syscall.SIGINT, syscall.SIGQUIT, syscall.SIGTERM:
+			case syscall.SIGINT, syscall.SIGTSTP, syscall.SIGTERM:
+				log.Printf("pid %v shutdown", pid)
 				m.shutdown()
 				return
+			default:
+				log.Printf("pid %v sig %v", pid, sig)
 			}
 		case <-ctx.Done():
+			m.shutdown()
 			return
 		}
 	}
@@ -72,13 +81,14 @@ func (m *Manager) shutdown() {
 		func(run func() error) {
 			m.runningWaitGroup.Run(func() {
 				if err := f(); err != nil {
-					fmt.Println(err)
+					log.Printf("shutdown func error %v", err)
 				}
 			})
 		}(f)
 	}
 
 	go func() {
+		m.runningWaitGroup.Wait()
 		m.mutex.Lock()
 		m.doneCtxCancel()
 		m.mutex.Unlock()
@@ -87,6 +97,7 @@ func (m *Manager) shutdown() {
 
 func (m *Manager) OnShutdown(f func() error) {
 	m.mutex.Lock()
+	defer m.mutex.Unlock()
+
 	m.runAtShutdown = append(m.runAtShutdown, f)
-	m.mutex.Unlock()
 }

@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"sync"
+	"time"
 )
 
 type Backend interface {
@@ -39,13 +41,15 @@ func (q *Queue) Enqueue(t *Task) error {
 	return q.Backend.Enqueue(t)
 }
 
-func (q *Queue) Close() error {
+func (q *Queue) Close() {
 	q.stop.Do(func() {
-		q.Backend.Close()
+		err := q.Backend.Close()
+		if err != nil {
+			log.Println(err)
+		}
 		close(q.quit)
-		q.group.Wait()
 	})
-	return nil
+	q.group.Wait()
 }
 
 func (q *Queue) AddHandler(handler func(context.Context, *Task) error) {
@@ -78,7 +82,14 @@ func (q *Queue) start() {
 			for {
 				task, err := q.Backend.Dequeue()
 				if err != nil {
-					return
+					select {
+					case <-q.quit:
+						if !errors.Is(err, ErrEmtpyQueue) {
+							close(tasks)
+							return
+						}
+					case <-time.After(time.Second):
+					}
 				}
 
 				if task != nil {

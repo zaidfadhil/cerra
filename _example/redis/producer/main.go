@@ -18,7 +18,7 @@ func main() {
 
 	queue := goatq.NewQueue(redisq.NewRedisBackend(opts))
 
-	for i := 0; i < 1000; i++ {
+	for i := 0; i < 100000; i++ {
 		task := goatq.NewTask("test", []byte(fmt.Sprint(i)))
 		err := queue.Enqueue(task)
 		if err != nil {

@@ -27,13 +27,17 @@ type rabbiMQBackend struct {
 	channel    *amqp.Channel
 	tasks      <-chan amqp.Delivery
 
-	stop chan struct{}
-	sync sync.Once
+	stop      chan struct{}
+	startSync sync.Once
+	stopSync  sync.Once
 }
 
 func NewRabbitMQBackend(options RabbiMQOptions) *rabbiMQBackend {
-	b := &rabbiMQBackend{}
-	b.options = options
+	b := &rabbiMQBackend{
+		tasks:   make(chan amqp.Delivery),
+		stop:    make(chan struct{}),
+		options: options,
+	}
 	var err error
 
 	b.connection, err = amqp.Dial(options.Address)
@@ -59,8 +63,6 @@ func NewRabbitMQBackend(options RabbiMQOptions) *rabbiMQBackend {
 		log.Fatal(err)
 	}
 
-	b.tasks = make(chan amqp.Delivery)
-	b.stop = make(chan struct{})
 	return b
 }
 
@@ -104,21 +106,21 @@ func (b *rabbiMQBackend) Dequeue() (*goatq.Task, error) {
 }
 
 func (b *rabbiMQBackend) Close() (err error) {
-	b.sync.Do(func() {
+	b.stopSync.Do(func() {
 		close(b.stop)
 		if err = b.channel.Cancel(b.options.Queue, true); err != nil {
-			log.Fatal(err)
-
+			log.Printf("rabbitmq channel close error %v", err)
 		}
+
 		if err = b.connection.Close(); err != nil {
-			log.Fatal(err)
+			log.Printf("rabbitmq connection close error %v", err)
 		}
 	})
 	return err
 }
 
 func (b *rabbiMQBackend) consumer() (err error) {
-	b.sync.Do(func() {
+	b.startSync.Do(func() {
 		q, err := b.channel.QueueDeclare(
 			b.options.Queue,
 			true,
