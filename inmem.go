@@ -8,14 +8,17 @@ type inMemoryBackend struct {
 	sync.RWMutex
 	tasks []*Task
 
-	head  int
-	tail  int
-	count int
+	head     int
+	tail     int
+	count    int
+	exit     chan struct{}
+	stopSync sync.Once
 }
 
 func NewInMemoryBackend() *inMemoryBackend {
 	return &inMemoryBackend{
 		tasks: make([]*Task, 1),
+		exit:  make(chan struct{}),
 	}
 }
 
@@ -35,7 +38,14 @@ func (b *inMemoryBackend) Enqueue(task *Task) error {
 }
 
 func (b *inMemoryBackend) Dequeue() (*Task, error) {
-	if len(b.tasks) == 0 {
+
+	if b.count == 0 {
+		select {
+		case b.exit <- struct{}{}:
+			return nil, ErrQueueClosed
+		default:
+		}
+
 		return nil, ErrEmtpyQueue
 	}
 
@@ -55,6 +65,9 @@ func (b *inMemoryBackend) Dequeue() (*Task, error) {
 }
 
 func (b *inMemoryBackend) Close() error {
+	b.stopSync.Do(func() {
+		<-b.exit
+	})
 	return nil
 }
 

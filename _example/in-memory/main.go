@@ -38,7 +38,7 @@ func main() {
 
 	queue := goatq.NewQueue(goatq.NewInMemoryBackend())
 
-	for i := 0; i < 1000000; i++ {
+	for i := 0; i < 1000; i++ {
 		task, err := newTask("test-queue", i)
 		if err != nil {
 			fmt.Println(err)
