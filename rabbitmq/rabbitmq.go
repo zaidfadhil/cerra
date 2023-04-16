@@ -42,12 +42,12 @@ func NewRabbitMQBackend(options RabbiMQOptions) *rabbiMQBackend {
 
 	b.connection, err = amqp.Dial(options.Address)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("amqp dial error %v", err)
 	}
 
 	b.channel, err = b.connection.Channel()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("amqp connection error: %v", err)
 	}
 
 	err = b.channel.ExchangeDeclare(
@@ -60,7 +60,7 @@ func NewRabbitMQBackend(options RabbiMQOptions) *rabbiMQBackend {
 		nil,
 	)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("amqp exchange declare error: %v", err)
 	}
 
 	return b
@@ -109,11 +109,11 @@ func (b *rabbiMQBackend) Close() (err error) {
 	b.stopSync.Do(func() {
 		close(b.stop)
 		if err = b.channel.Cancel(b.options.Queue, true); err != nil {
-			log.Printf("rabbitmq channel close error %v", err)
+			log.Printf("rabbitmq channel close error: %v", err)
 		}
 
 		if err = b.connection.Close(); err != nil {
-			log.Printf("rabbitmq connection close error %v", err)
+			log.Printf("rabbitmq connection close error: %v", err)
 		}
 	})
 	return err
@@ -130,7 +130,7 @@ func (b *rabbiMQBackend) consumer() (err error) {
 			nil,
 		)
 		if err != nil {
-			log.Fatal(err)
+			log.Println(err)
 			return
 		}
 
@@ -142,7 +142,7 @@ func (b *rabbiMQBackend) consumer() (err error) {
 			nil,
 		)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("exchange bind error: %v", err)
 			return
 		}
 
@@ -156,7 +156,7 @@ func (b *rabbiMQBackend) consumer() (err error) {
 			nil,
 		)
 		if err != nil {
-			log.Fatal(err)
+			log.Printf("amqp consumer error: %v", err)
 			return
 		}
 

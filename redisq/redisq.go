@@ -54,7 +54,7 @@ func NewRedisBackend(options RedisOptions) *redisBackend {
 	} else if b.options.ConnectionString != "" {
 		options, err := redis.ParseURL(b.options.ConnectionString)
 		if err != nil {
-			log.Fatalf("error parsing redis connection string %v", err)
+			log.Fatalf("error parsing redis connection string: %v", err)
 		}
 		b.rdb = redis.NewClient(options)
 	} else if b.options.Address != "" {
@@ -75,7 +75,7 @@ func NewRedisBackend(options RedisOptions) *redisBackend {
 
 	_, err := b.rdb.Ping(context.Background()).Result()
 	if err != nil {
-		log.Fatalf("error connecting to redis %v", err)
+		log.Fatalf("error connecting to redis: %v", err)
 	}
 
 	b.stop = make(chan struct{})
@@ -136,14 +136,11 @@ func (b *redisBackend) Close() error {
 func (b *redisBackend) consumer() (err error) {
 	b.startSync.Do(func() {
 		ctx := context.Background()
-		err := b.rdb.XGroupCreateMkStream(
-			ctx,
-			b.options.Queue,
-			b.options.Group,
-			"0",
-		).Err()
+		err := b.createGroup(ctx)
 		if err != nil {
-			log.Printf("error creating stream %v", err)
+			if !strings.HasPrefix(err.Error(), "BUSYGROUP") {
+				log.Printf("error creating stream: %v", err)
+			}
 		}
 
 		go b.fetch()
@@ -169,46 +166,61 @@ func (b *redisBackend) fetch() {
 			Block:    b.options.blockTime,
 		}).Result()
 		if err != nil {
-			log.Printf("error reading redis stream %v", err)
+			if strings.HasPrefix(err.Error(), "NOGROUP") {
+				b.createGroup(ctx)
+			}
+			log.Printf("error reading redis stream: %v", err)
 			continue
 		}
 
 		for _, result := range data {
 			for _, message := range result.Messages {
-
 				select {
 				case b.tasks <- message:
-
-					err := b.rdb.XAck(
-						ctx,
-						b.options.Queue,
-						b.options.Group,
-						message.ID,
-					).Err()
-					if err != nil {
-						log.Printf("error message ack %v", err)
-					}
-
-					err = b.rdb.XDel(
-						ctx,
-						b.options.Queue,
-						message.ID,
-					).Err()
-					if err != nil {
-						log.Printf("error when deleting the message %v", err)
-					}
+					b.ack(ctx, message)
 				case <-b.stop:
+					log.Printf("requeue %v, %v", message.ID, message.Values)
 					err := b.rdb.XAdd(ctx, &redis.XAddArgs{
 						Stream: b.options.Queue,
 						Values: message.Values,
 					}).Err()
 					if err != nil {
-						log.Printf("error requeue the message %v", err)
+						log.Printf("error requeue the message: %v", err)
 					}
 					close(b.exit)
 					return
 				}
 			}
 		}
+	}
+}
+
+func (b *redisBackend) createGroup(ctx context.Context) error {
+	return b.rdb.XGroupCreateMkStream(
+		ctx,
+		b.options.Queue,
+		b.options.Group,
+		"0",
+	).Err()
+}
+
+func (b *redisBackend) ack(ctx context.Context, m redis.XMessage) {
+	err := b.rdb.XAck(
+		ctx,
+		b.options.Queue,
+		b.options.Group,
+		m.ID,
+	).Err()
+	if err != nil {
+		log.Printf("error message ack: %v", err)
+	}
+
+	err = b.rdb.XDel(
+		ctx,
+		b.options.Queue,
+		m.ID,
+	).Err()
+	if err != nil {
+		log.Printf("error when deleting the message: %v", err)
 	}
 }

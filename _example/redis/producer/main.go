@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/zaidfadhil/goatq"
-	redisq "github.com/zaidfadhil/goatq/redis"
+	"github.com/zaidfadhil/goatq/redisq"
 )
 
 func main() {

@@ -19,11 +19,9 @@ type Manager struct {
 	runAtShutdown     []func() error
 }
 
-var startOnce = sync.Once{}
-
 func NewManager() *Manager {
 	var manager Manager
-	//var startOnce = sync.Once{}
+	var startOnce = sync.Once{}
 	startOnce.Do(func() {
 		manager = Manager{
 			mutex:            &sync.RWMutex{},

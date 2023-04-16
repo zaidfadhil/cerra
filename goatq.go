@@ -3,7 +3,6 @@ package goatq
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log"
 	"sync"
 	"time"
@@ -138,7 +137,7 @@ func (q *Queue) runFunc(ctx context.Context, t *Task) {
 	q.group.Run(func() {
 		for _, f := range q.handleFuncs {
 			if err := f(ctx, t); err != nil {
-				fmt.Println("internal error", err)
+				log.Printf("internal error: %v", err)
 			}
 		}
 	})
