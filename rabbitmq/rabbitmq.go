@@ -10,7 +10,7 @@ import (
 	"github.com/zaidfadhil/goatq"
 )
 
-type RabbiMQOptions struct {
+type Options struct {
 	Address      string
 	Queue        string
 	ExchangeName string
@@ -21,7 +21,7 @@ type RabbiMQOptions struct {
 var _ goatq.Backend = (*rabbiMQBackend)(nil)
 
 type rabbiMQBackend struct {
-	options RabbiMQOptions
+	options Options
 
 	connection *amqp.Connection
 	channel    *amqp.Channel
@@ -32,11 +32,11 @@ type rabbiMQBackend struct {
 	stopSync  sync.Once
 }
 
-func NewRabbitMQBackend(options RabbiMQOptions) *rabbiMQBackend {
+func New(options Options) *rabbiMQBackend {
 	b := &rabbiMQBackend{
 		tasks:   make(chan amqp.Delivery),
 		stop:    make(chan struct{}),
-		options: options,
+		options: defaultOptions(options),
 	}
 	var err error
 
@@ -71,7 +71,7 @@ func (b *rabbiMQBackend) Enqueue(task *goatq.Task) error {
 	if err != nil {
 		return err
 	}
-	err = b.channel.PublishWithContext(
+	return b.channel.PublishWithContext(
 		context.Background(),
 		b.options.ExchangeName,
 		b.options.RoutingKey,
@@ -85,7 +85,6 @@ func (b *rabbiMQBackend) Enqueue(task *goatq.Task) error {
 			DeliveryMode:    amqp.Transient,
 			Priority:        0,
 		})
-	return err
 }
 
 func (b *rabbiMQBackend) Dequeue() (*goatq.Task, error) {
@@ -162,4 +161,23 @@ func (b *rabbiMQBackend) consumer() (err error) {
 
 	})
 	return err
+}
+
+func defaultOptions(opts Options) Options {
+	if opts.Address == "" {
+		opts.Address = "amqp://user:pass@localhost:5672"
+	}
+	if opts.Queue == "" {
+		opts.Queue = "goatq-queue"
+	}
+	if opts.ExchangeName == "" {
+		opts.ExchangeName = "goatq-exchange"
+	}
+	if opts.ExchangeType == "" {
+		opts.ExchangeType = "direct"
+	}
+	if opts.RoutingKey == "" {
+		opts.RoutingKey = "goatq-key"
+	}
+	return opts
 }

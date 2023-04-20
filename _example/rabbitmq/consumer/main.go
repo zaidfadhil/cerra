@@ -16,15 +16,15 @@ func handleTask(ctx context.Context, t *goatq.Task) error {
 func main() {
 	m := goatq.NewManager()
 
-	opts := rabbitmq.RabbiMQOptions{
+	rabbitQueue := rabbitmq.New(rabbitmq.Options{
 		Address:      "amqp://user:password@localhost:5672/",
 		Queue:        "goatq",
 		ExchangeName: "goatq-exchange",
 		ExchangeType: "direct",
 		RoutingKey:   "goatq-key",
-	}
+	})
 
-	queue := goatq.NewQueue(rabbitmq.NewRabbitMQBackend(opts))
+	queue := goatq.NewQueue(rabbitQueue)
 
 	queue.AddHandler(handleTask)
 

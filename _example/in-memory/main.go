@@ -4,8 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math/rand"
-	"time"
 
 	"github.com/zaidfadhil/goatq"
 )
@@ -60,11 +58,4 @@ func main() {
 	})
 
 	<-m.Done()
-}
-
-func RandomString(length int) string {
-	rand.Seed(time.Now().UnixNano())
-	b := make([]byte, length+2)
-	rand.Read(b)
-	return fmt.Sprintf("%x", b)[2 : length+2]
 }

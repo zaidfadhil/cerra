@@ -16,15 +16,14 @@ func handleTask(ctx context.Context, t *goatq.Task) error {
 func main() {
 	m := goatq.NewManager()
 
-	opts := redisq.RedisOptions{
+	redisQueue := redisq.New(redisq.Options{
 		Address:  "localhost:6379",
 		Password: "redis",
-		Queue:    "goatq",
+		Stream:   "goatq",
 		Group:    "goatq",
 		Consumer: "goatq",
-	}
-
-	queue := goatq.NewQueue(redisq.NewRedisBackend(opts))
+	})
+	queue := goatq.NewQueue(redisQueue)
 
 	queue.AddHandler(handleTask)
 

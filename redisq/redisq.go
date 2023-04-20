@@ -11,7 +11,7 @@ import (
 	"github.com/zaidfadhil/goatq"
 )
 
-type RedisOptions struct {
+type Options struct {
 	Client *redis.Client
 
 	ConnectionString string
@@ -19,7 +19,7 @@ type RedisOptions struct {
 	Cluster          bool
 	DB               int
 	Password         string
-	Queue            string
+	Stream           string
 	Group            string
 	Consumer         string
 
@@ -29,7 +29,7 @@ type RedisOptions struct {
 var _ goatq.Backend = (*redisBackend)(nil)
 
 type redisBackend struct {
-	options RedisOptions
+	options Options
 
 	rdb   redis.Cmdable
 	tasks chan redis.XMessage
@@ -40,14 +40,13 @@ type redisBackend struct {
 	stopSync  sync.Once
 }
 
-func NewRedisBackend(options RedisOptions) *redisBackend {
+func New(options Options) *redisBackend {
 	b := &redisBackend{
 		stop:    make(chan struct{}),
 		exit:    make(chan struct{}),
 		tasks:   make(chan redis.XMessage),
-		options: options,
+		options: defaultOptions(options),
 	}
-	b.options.blockTime = 60 * time.Second
 
 	if b.options.Client != nil {
 		b.rdb = b.options.Client
@@ -78,10 +77,6 @@ func NewRedisBackend(options RedisOptions) *redisBackend {
 		log.Fatalf("error connecting to redis: %v", err)
 	}
 
-	b.stop = make(chan struct{})
-	b.exit = make(chan struct{})
-	b.tasks = make(chan redis.XMessage)
-	b.options.blockTime = 60 * time.Second
 	return b
 }
 
@@ -89,7 +84,7 @@ func (b *redisBackend) Enqueue(task *goatq.Task) error {
 	ctx := context.Background()
 
 	err := b.rdb.XAdd(ctx, &redis.XAddArgs{
-		Stream: b.options.Queue,
+		Stream: b.options.Stream,
 		Values: task.ToMap(),
 	}).Err()
 
@@ -161,7 +156,7 @@ func (b *redisBackend) fetch() {
 		data, err := b.rdb.XReadGroup(ctx, &redis.XReadGroupArgs{
 			Group:    b.options.Group,
 			Consumer: b.options.Consumer,
-			Streams:  []string{b.options.Queue, ">"},
+			Streams:  []string{b.options.Stream, ">"},
 			Count:    1,
 			Block:    b.options.blockTime,
 		}).Result()
@@ -181,7 +176,7 @@ func (b *redisBackend) fetch() {
 				case <-b.stop:
 					log.Printf("requeue %v, %v", message.ID, message.Values)
 					err := b.rdb.XAdd(ctx, &redis.XAddArgs{
-						Stream: b.options.Queue,
+						Stream: b.options.Stream,
 						Values: message.Values,
 					}).Err()
 					if err != nil {
@@ -198,7 +193,7 @@ func (b *redisBackend) fetch() {
 func (b *redisBackend) createGroup(ctx context.Context) error {
 	return b.rdb.XGroupCreateMkStream(
 		ctx,
-		b.options.Queue,
+		b.options.Stream,
 		b.options.Group,
 		"0",
 	).Err()
@@ -207,7 +202,7 @@ func (b *redisBackend) createGroup(ctx context.Context) error {
 func (b *redisBackend) ack(ctx context.Context, m redis.XMessage) {
 	err := b.rdb.XAck(
 		ctx,
-		b.options.Queue,
+		b.options.Stream,
 		b.options.Group,
 		m.ID,
 	).Err()
@@ -217,10 +212,26 @@ func (b *redisBackend) ack(ctx context.Context, m redis.XMessage) {
 
 	err = b.rdb.XDel(
 		ctx,
-		b.options.Queue,
+		b.options.Stream,
 		m.ID,
 	).Err()
 	if err != nil {
 		log.Printf("error when deleting the message: %v", err)
 	}
+}
+
+func defaultOptions(opts Options) Options {
+	if opts.Address == "" {
+		opts.Address = "localhost:6379"
+	}
+	if opts.Stream == "" {
+		opts.Stream = "goatq-stream"
+	}
+	if opts.Group == "" {
+		opts.Group = "goatq-group"
+	}
+	if opts.Consumer == "" {
+		opts.Consumer = "goatq-consumer"
+	}
+	return opts
 }

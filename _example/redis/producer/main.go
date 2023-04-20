@@ -2,21 +2,22 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/zaidfadhil/goatq"
 	"github.com/zaidfadhil/goatq/redisq"
 )
 
 func main() {
-	opts := redisq.RedisOptions{
+
+	redisQueue := redisq.New(redisq.Options{
 		Address:  "localhost:6379",
 		Password: "redis",
-		Queue:    "goatq",
+		Stream:   "goatq",
 		Group:    "goatq",
 		Consumer: "goatq",
-	}
-
-	queue := goatq.NewQueue(redisq.NewRedisBackend(opts))
+	})
+	queue := goatq.NewQueue(redisQueue)
 
 	for i := 0; i < 100000; i++ {
 		task := goatq.NewTask("test", []byte(fmt.Sprint(i)))
@@ -26,4 +27,6 @@ func main() {
 		}
 		fmt.Println(i)
 	}
+
+	time.Sleep(1 * time.Second)
 }
