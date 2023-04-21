@@ -11,7 +11,7 @@ import (
 func main() {
 
 	rabbitQueue := rabbitmq.New(rabbitmq.Options{
-		Address:      "amqp://user:password@localhost:5672/",
+		Address:      "amqp://user:pass@localhost:5672/",
 		Queue:        "goatq",
 		ExchangeName: "goatq-exchange",
 		ExchangeType: "direct",

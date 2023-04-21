@@ -40,7 +40,7 @@ func New(options Options) *rabbiMQBackend {
 	}
 	var err error
 
-	b.connection, err = amqp.Dial(options.Address)
+	b.connection, err = amqp.Dial(b.options.Address)
 	if err != nil {
 		log.Fatalf("amqp dial error %v", err)
 	}
@@ -51,8 +51,8 @@ func New(options Options) *rabbiMQBackend {
 	}
 
 	err = b.channel.ExchangeDeclare(
-		options.ExchangeName,
-		options.ExchangeType,
+		b.options.ExchangeName,
+		b.options.ExchangeType,
 		true,
 		false,
 		false,
