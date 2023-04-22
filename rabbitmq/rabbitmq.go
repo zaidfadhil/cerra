@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"sync"
+	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/zaidfadhil/goatq"
@@ -63,6 +64,8 @@ func New(options Options) *rabbiMQBackend {
 		log.Fatalf("amqp exchange declare error: %v", err)
 	}
 
+	b.bind()
+
 	return b
 }
 
@@ -93,15 +96,27 @@ func (b *rabbiMQBackend) Dequeue() (*goatq.Task, error) {
 		return nil, goatq.ErrInActiveQueue
 	}
 
-	task, ok := <-b.tasks
-	if !ok {
-		return nil, goatq.ErrInActiveQueue
+	times := 0
+loop:
+	for {
+		select {
+		case task, ok := <-b.tasks:
+			if !ok {
+				return nil, goatq.ErrInActiveQueue
+			}
+			var data goatq.Task
+			_ = json.Unmarshal(task.Body, &data)
+			_ = task.Ack(false)
+			return &data, nil
+		case <-time.After(500 * time.Millisecond):
+			if times == 5 {
+				break loop
+			}
+			times += 1
+		}
 	}
 
-	var data goatq.Task
-	_ = json.Unmarshal(task.Body, &data)
-	_ = task.Ack(false)
-	return &data, nil
+	return nil, goatq.ErrEmtpyQueue
 }
 
 func (b *rabbiMQBackend) Close() (err error) {
@@ -120,33 +135,14 @@ func (b *rabbiMQBackend) Close() (err error) {
 
 func (b *rabbiMQBackend) consumer() (err error) {
 	b.startSync.Do(func() {
-		q, err := b.channel.QueueDeclare(
-			b.options.Queue,
-			true,
-			false,
-			false,
-			false,
-			nil,
-		)
+		qName, err := b.bind()
 		if err != nil {
 			log.Println(err)
 			return
 		}
 
-		err = b.channel.QueueBind(
-			q.Name,
-			b.options.RoutingKey,
-			b.options.ExchangeName,
-			false,
-			nil,
-		)
-		if err != nil {
-			log.Printf("exchange bind error: %v", err)
-			return
-		}
-
 		b.tasks, err = b.channel.Consume(
-			q.Name,
+			qName,
 			b.options.Queue,
 			false,
 			false,
@@ -161,6 +157,35 @@ func (b *rabbiMQBackend) consumer() (err error) {
 
 	})
 	return err
+}
+
+func (b *rabbiMQBackend) bind() (string, error) {
+	q, err := b.channel.QueueDeclare(
+		b.options.Queue,
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Println(err)
+		return "", err
+	}
+
+	err = b.channel.QueueBind(
+		q.Name,
+		b.options.RoutingKey,
+		b.options.ExchangeName,
+		false,
+		nil,
+	)
+	if err != nil {
+		log.Printf("exchange bind error: %v", err)
+		return "", err
+	}
+
+	return q.Name, nil
 }
 
 func defaultOptions(opts Options) Options {

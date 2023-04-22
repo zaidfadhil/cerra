@@ -1,7 +1,9 @@
 package rabbitmq_test
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/zaidfadhil/goatq"
 	"github.com/zaidfadhil/goatq/rabbitmq"
@@ -9,40 +11,51 @@ import (
 
 func TestRabbitmqEnqueue(t *testing.T) {
 	backend := rabbitmq.New(rabbitmq.Options{
-		Address: "amqp://user:pass@rabbitmq:5672",
+		Address: "amqp://user:pass@localhost:5672",
 	})
-	defer backend.Close()
+	queue := goatq.NewQueue(backend)
+	defer queue.Close()
 
 	task := &goatq.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}
 
-	err := backend.Enqueue(task)
+	err := queue.Enqueue(task)
 	if err != nil {
 		t.Errorf("rabbitmq enqueu error: %v", err)
 	}
+
+	time.Sleep(50 * time.Millisecond)
 }
 
 func TestRabbitmqDequeue(t *testing.T) {
 	backend := rabbitmq.New(rabbitmq.Options{
-		Address: "amqp://user:pass@rabbitmq:5672",
+		Address: "amqp://user:pass@localhost:5672",
 	})
-	defer backend.Close()
+	queue := goatq.NewQueue(backend)
+	queue.Start()
 
 	task := &goatq.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}
 
-	err := backend.Enqueue(task)
+	err := queue.Enqueue(task)
 	if err != nil {
-		t.Errorf("rabbitmq enqueu error: %v", err)
+		t.Errorf("rabbitmq enqueue error: %v", err)
 	}
 
-	dequeuedTask, err := backend.Dequeue()
-	if err != nil {
-		t.Errorf("rabbitmq dequeu error: %v", err)
+	var dequeuedTask *goatq.Task
+	queue.AddHandler(func(ctx context.Context, t *goatq.Task) error {
+		dequeuedTask = t
+		return nil
+	})
+
+	time.Sleep(100 * time.Millisecond)
+
+	if dequeuedTask == nil {
+		t.Error("handler was not called")
 	}
 
 	if dequeuedTask.Name != task.Name {
@@ -52,14 +65,6 @@ func TestRabbitmqDequeue(t *testing.T) {
 	if string(dequeuedTask.Payload) != string(task.Payload) {
 		t.Error("rabbitmq dequeue task payload != queued task payload")
 	}
-}
 
-func TestRabbitmqClose(t *testing.T) {
-	backend := rabbitmq.New(rabbitmq.Options{
-		Address: "amqp://user:pass@rabbitmq:5672",
-	})
-	err := backend.Close()
-	if err != nil {
-		t.Errorf("rabbitmq close connection error: %v", err)
-	}
+	queue.Close()
 }
