@@ -9,8 +9,7 @@ import (
 
 func TestRedisqEnqueue(t *testing.T) {
 	backend := redisq.New(redisq.Options{
-		Address:  "localhost:6379",
-		Password: "redis",
+		Address: "localhost:6379",
 	})
 	defer backend.Close()
 
@@ -27,8 +26,7 @@ func TestRedisqEnqueue(t *testing.T) {
 
 func TestRedisqDequeue(t *testing.T) {
 	backend := redisq.New(redisq.Options{
-		Address:  "localhost:6379",
-		Password: "redis",
+		Address: "localhost:6379",
 	})
 	defer backend.Close()
 
@@ -58,8 +56,7 @@ func TestRedisqDequeue(t *testing.T) {
 
 func TestRedisqClose(t *testing.T) {
 	backend := redisq.New(redisq.Options{
-		Address:  "localhost:6379",
-		Password: "redis",
+		Address: "localhost:6379",
 	})
 	err := backend.Close()
 	if err != nil {
