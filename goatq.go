@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"log"
+	"runtime"
 	"sync"
+	"sync/atomic"
 	"time"
 )
 
@@ -16,26 +18,34 @@ type Backend interface {
 
 type Queue struct {
 	sync.Mutex
-	Backend Backend
+	Backend      Backend
+	group        *routineGroup
+	quit         chan struct{}
+	ready        chan struct{}
+	stop         sync.Once
+	maxWorkerNum int
+	handleFuncs  []func(context.Context, *Task) error
 
-	group *routineGroup
-
-	quit chan struct{}
-	stop sync.Once
-
-	handleFuncs []func(context.Context, *Task) error
+	activeWorkers uint32
 }
 
 func NewQueue(backend Backend) *Queue {
 	return &Queue{
-		Backend: backend,
-		group:   newRoutineGroup(),
-		quit:    make(chan struct{}),
+		Backend:      backend,
+		group:        newRoutineGroup(),
+		quit:         make(chan struct{}),
+		ready:        make(chan struct{}, 1),
+		maxWorkerNum: runtime.NumCPU(),
 	}
 }
 
 func (q *Queue) Enqueue(t *Task) error {
 	return q.Backend.Enqueue(t)
+}
+
+func (q *Queue) UpdateMaxWorkerNum(num int) {
+	q.maxWorkerNum = num
+	q.schedule()
 }
 
 func (q *Queue) Close() {
@@ -67,10 +77,12 @@ func (q *Queue) start() {
 	ctx := context.Background()
 
 	for {
+		q.schedule()
+
 		select {
+		case <-q.ready:
 		case <-q.quit:
 			return
-		default:
 		}
 
 		q.group.Run(func() {
@@ -108,23 +120,38 @@ func (q *Queue) start() {
 			return
 		}
 
+		atomic.AddUint32(&q.activeWorkers, 1)
 		q.group.Run(func() {
 			q.runFunc(ctx, task)
 		})
 	}
 }
 
+func (q *Queue) schedule() {
+	q.Lock()
+	defer q.Unlock()
+
+	if int(q.activeWorkers) >= q.maxWorkerNum {
+		return
+	}
+
+	select {
+	case q.ready <- struct{}{}:
+	default:
+	}
+}
+
 func (q *Queue) runFunc(ctx context.Context, t *Task) {
 	ctx, cancel := context.WithTimeout(ctx, t.timeout)
 	defer func() {
+		atomic.AddUint32(&q.activeWorkers, ^uint32(0))
+		q.schedule()
 		cancel()
 	}()
 
-	q.group.Run(func() {
-		for _, f := range q.handleFuncs {
-			if err := f(ctx, t); err != nil {
-				log.Printf("internal error: %v", err)
-			}
+	for _, f := range q.handleFuncs {
+		if err := f(ctx, t); err != nil {
+			log.Printf("internal error: %v", err)
 		}
-	})
+	}
 }
