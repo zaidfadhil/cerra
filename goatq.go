@@ -20,9 +20,8 @@ type Queue struct {
 
 	group *routineGroup
 
-	quit  chan struct{}
-	ready chan struct{}
-	stop  sync.Once
+	quit chan struct{}
+	stop sync.Once
 
 	handleFuncs []func(context.Context, *Task) error
 }
@@ -32,7 +31,6 @@ func NewQueue(backend Backend) *Queue {
 		Backend: backend,
 		group:   newRoutineGroup(),
 		quit:    make(chan struct{}),
-		ready:   make(chan struct{}, 1),
 	}
 }
 
@@ -69,12 +67,10 @@ func (q *Queue) start() {
 	ctx := context.Background()
 
 	for {
-		q.schedule()
-
 		select {
-		case <-q.ready:
 		case <-q.quit:
 			return
+		default:
 		}
 
 		q.group.Run(func() {
@@ -115,16 +111,6 @@ func (q *Queue) start() {
 		q.group.Run(func() {
 			q.runFunc(ctx, task)
 		})
-	}
-}
-
-func (q *Queue) schedule() {
-	q.Lock()
-	defer q.Unlock()
-
-	select {
-	case q.ready <- struct{}{}:
-	default:
 	}
 }
 

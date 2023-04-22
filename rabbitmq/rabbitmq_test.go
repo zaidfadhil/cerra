@@ -7,7 +7,7 @@ import (
 	"github.com/zaidfadhil/goatq/rabbitmq"
 )
 
-func TestRabbitmqEnqueueTask(t *testing.T) {
+func TestRabbitmqEnqueue(t *testing.T) {
 	backend := rabbitmq.New(rabbitmq.Options{
 		Address: "amqp://user:pass@localhost:5672",
 	})
@@ -24,7 +24,7 @@ func TestRabbitmqEnqueueTask(t *testing.T) {
 	}
 }
 
-func TestRabbitmqDequeueTask(t *testing.T) {
+func TestRabbitmqDequeue(t *testing.T) {
 	backend := rabbitmq.New(rabbitmq.Options{
 		Address: "amqp://user:pass@localhost:5672",
 	})

@@ -1,19 +1,13 @@
-package redisq_test
+package goatq_test
 
 import (
 	"testing"
 
 	"github.com/zaidfadhil/goatq"
-	"github.com/zaidfadhil/goatq/redisq"
 )
 
-func TestRedisqEnqueue(t *testing.T) {
-	backend := redisq.New(redisq.Options{
-		Address:  "localhost:6379",
-		Password: "redis",
-	})
-	defer backend.Close()
-
+func TestInMemEnqueue(t *testing.T) {
+	backend := goatq.NewInMemoryBackend()
 	task := &goatq.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
@@ -25,12 +19,8 @@ func TestRedisqEnqueue(t *testing.T) {
 	}
 }
 
-func TestRedisqDequeue(t *testing.T) {
-	backend := redisq.New(redisq.Options{
-		Address:  "localhost:6379",
-		Password: "redis",
-	})
-	defer backend.Close()
+func TestInMemDequeue(t *testing.T) {
+	backend := goatq.NewInMemoryBackend()
 
 	task := &goatq.Task{
 		Name:    "test_task",
@@ -53,16 +43,5 @@ func TestRedisqDequeue(t *testing.T) {
 
 	if string(dequeuedTask.Payload) != string(task.Payload) {
 		t.Error("redisq dequeue task payload != queued task payload")
-	}
-}
-
-func TestRedisqClose(t *testing.T) {
-	backend := redisq.New(redisq.Options{
-		Address:  "localhost:6379",
-		Password: "redis",
-	})
-	err := backend.Close()
-	if err != nil {
-		t.Errorf("redisq close connection error: %v", err)
 	}
 }
