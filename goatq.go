@@ -44,8 +44,10 @@ func (q *Queue) Enqueue(t *Task) error {
 }
 
 func (q *Queue) UpdateMaxWorkerNum(num int) {
-	q.maxWorkerNum = num
-	q.schedule()
+	if num != 0 {
+		q.maxWorkerNum = num
+		q.schedule()
+	}
 }
 
 func (q *Queue) Close() {
