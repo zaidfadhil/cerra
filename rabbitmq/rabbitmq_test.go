@@ -9,7 +9,7 @@ import (
 
 func TestRabbitmqEnqueue(t *testing.T) {
 	backend := rabbitmq.New(rabbitmq.Options{
-		Address: "amqp://user:pass@localhost:5672",
+		Address: "amqp://user:pass@rabbitmq:5672",
 	})
 	defer backend.Close()
 
@@ -26,7 +26,7 @@ func TestRabbitmqEnqueue(t *testing.T) {
 
 func TestRabbitmqDequeue(t *testing.T) {
 	backend := rabbitmq.New(rabbitmq.Options{
-		Address: "amqp://user:pass@localhost:5672",
+		Address: "amqp://user:pass@rabbitmq:5672",
 	})
 	defer backend.Close()
 
@@ -56,7 +56,7 @@ func TestRabbitmqDequeue(t *testing.T) {
 
 func TestRabbitmqClose(t *testing.T) {
 	backend := rabbitmq.New(rabbitmq.Options{
-		Address: "amqp://user:pass@localhost:5672",
+		Address: "amqp://user:pass@rabbitmq:5672",
 	})
 	err := backend.Close()
 	if err != nil {
