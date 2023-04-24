@@ -35,7 +35,7 @@ func NewQueue(backend Backend) *Queue {
 		group:        newRoutineGroup(),
 		quit:         make(chan struct{}),
 		ready:        make(chan struct{}, 1),
-		maxWorkerNum: runtime.NumCPU(),
+		maxWorkerNum: runtime.NumCPU() * 2,
 	}
 }
 
