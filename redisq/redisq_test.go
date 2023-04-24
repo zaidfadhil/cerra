@@ -3,8 +3,8 @@ package redisq_test
 import (
 	"testing"
 
-	"github.com/zaidfadhil/goatq"
-	"github.com/zaidfadhil/goatq/redisq"
+	"github.com/zaidfadhil/cerra"
+	"github.com/zaidfadhil/cerra/redisq"
 )
 
 func TestRedisqEnqueue(t *testing.T) {
@@ -13,7 +13,7 @@ func TestRedisqEnqueue(t *testing.T) {
 	})
 	defer backend.Close()
 
-	task := &goatq.Task{
+	task := &cerra.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}
@@ -30,7 +30,7 @@ func TestRedisqDequeue(t *testing.T) {
 	})
 	defer backend.Close()
 
-	task := &goatq.Task{
+	task := &cerra.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}

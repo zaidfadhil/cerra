@@ -4,26 +4,26 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zaidfadhil/goatq"
-	"github.com/zaidfadhil/goatq/rabbitmq"
+	"github.com/zaidfadhil/cerra"
+	"github.com/zaidfadhil/cerra/rabbitmq"
 )
 
-func handleTask(ctx context.Context, t *goatq.Task) error {
+func handleTask(ctx context.Context, t *cerra.Task) error {
 	fmt.Println("get", string(t.Payload))
 	return nil
 }
 
 func main() {
-	m := goatq.NewManager()
+	m := cerra.NewManager()
 
 	rabbitQueue := rabbitmq.New(rabbitmq.Options{
 		Address:      "amqp://user:pass@localhost:5672/",
-		Queue:        "goatq",
-		ExchangeName: "goatq-exchange",
+		Queue:        "cerra",
+		ExchangeName: "cerra-exchange",
 		ExchangeType: "direct",
-		RoutingKey:   "goatq-key",
+		RoutingKey:   "cerra-key",
 	})
-	queue := goatq.NewQueue(rabbitQueue)
+	queue := cerra.NewQueue(rabbitQueue)
 
 	queue.AddHandler(handleTask)
 

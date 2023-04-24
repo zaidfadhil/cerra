@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/zaidfadhil/goatq"
+	"github.com/zaidfadhil/cerra"
 )
 
 type Options struct {
@@ -26,7 +26,7 @@ type Options struct {
 	blockTime time.Duration
 }
 
-var _ goatq.Backend = (*redisBackend)(nil)
+var _ cerra.Backend = (*redisBackend)(nil)
 
 type redisBackend struct {
 	options Options
@@ -80,7 +80,7 @@ func New(options Options) *redisBackend {
 	return b
 }
 
-func (b *redisBackend) Enqueue(task *goatq.Task) error {
+func (b *redisBackend) Enqueue(task *cerra.Task) error {
 	ctx := context.Background()
 
 	err := b.rdb.XAdd(ctx, &redis.XAddArgs{
@@ -91,18 +91,18 @@ func (b *redisBackend) Enqueue(task *goatq.Task) error {
 	return err
 }
 
-func (b *redisBackend) Dequeue() (*goatq.Task, error) {
+func (b *redisBackend) Dequeue() (*cerra.Task, error) {
 	err := b.consumer()
 	if err != nil {
-		return nil, goatq.ErrInActiveQueue
+		return nil, cerra.ErrInActiveQueue
 	}
 
 	task, ok := <-b.tasks
 	if !ok {
-		return nil, goatq.ErrInActiveQueue
+		return nil, cerra.ErrInActiveQueue
 	}
 
-	return &goatq.Task{
+	return &cerra.Task{
 		Name:    task.Values["name"].(string),
 		Payload: []byte(task.Values["payload"].(string)),
 	}, nil
@@ -225,13 +225,13 @@ func defaultOptions(opts Options) Options {
 		opts.Address = "localhost:6379"
 	}
 	if opts.Stream == "" {
-		opts.Stream = "goatq-stream"
+		opts.Stream = "cerra-stream"
 	}
 	if opts.Group == "" {
-		opts.Group = "goatq-group"
+		opts.Group = "cerra-group"
 	}
 	if opts.Consumer == "" {
-		opts.Consumer = "goatq-consumer"
+		opts.Consumer = "cerra-consumer"
 	}
 	return opts
 }

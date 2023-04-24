@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/zaidfadhil/goatq"
-	"github.com/zaidfadhil/goatq/redisq"
+	"github.com/zaidfadhil/cerra"
+	"github.com/zaidfadhil/cerra/redisq"
 )
 
 func main() {
@@ -13,14 +13,14 @@ func main() {
 	redisQueue := redisq.New(redisq.Options{
 		Address:  "localhost:6379",
 		Password: "redis",
-		Stream:   "goatq",
-		Group:    "goatq",
-		Consumer: "goatq",
+		Stream:   "cerra",
+		Group:    "cerra",
+		Consumer: "cerra",
 	})
-	queue := goatq.NewQueue(redisQueue)
+	queue := cerra.NewQueue(redisQueue)
 
 	for i := 0; i < 100000; i++ {
-		task := goatq.NewTask("test", []byte(fmt.Sprint(i)))
+		task := cerra.NewTask("test", []byte(fmt.Sprint(i)))
 		err := queue.Enqueue(task)
 		if err != nil {
 			fmt.Println(err)

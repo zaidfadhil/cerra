@@ -1,14 +1,14 @@
-package goatq_test
+package cerra_test
 
 import (
 	"testing"
 
-	"github.com/zaidfadhil/goatq"
+	"github.com/zaidfadhil/cerra"
 )
 
 func TestInMemEnqueue(t *testing.T) {
-	backend := goatq.NewInMemoryBackend()
-	task := &goatq.Task{
+	backend := cerra.NewInMemoryBackend()
+	task := &cerra.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}
@@ -20,9 +20,9 @@ func TestInMemEnqueue(t *testing.T) {
 }
 
 func TestInMemDequeue(t *testing.T) {
-	backend := goatq.NewInMemoryBackend()
+	backend := cerra.NewInMemoryBackend()
 
-	task := &goatq.Task{
+	task := &cerra.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}

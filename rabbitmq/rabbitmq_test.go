@@ -5,18 +5,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/zaidfadhil/goatq"
-	"github.com/zaidfadhil/goatq/rabbitmq"
+	"github.com/zaidfadhil/cerra"
+	"github.com/zaidfadhil/cerra/rabbitmq"
 )
 
 func TestRabbitmqEnqueue(t *testing.T) {
 	backend := rabbitmq.New(rabbitmq.Options{
 		Address: "amqp://user:pass@localhost:5672",
 	})
-	queue := goatq.NewQueue(backend)
+	queue := cerra.NewQueue(backend)
 	defer queue.Close()
 
-	task := &goatq.Task{
+	task := &cerra.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}
@@ -33,10 +33,10 @@ func TestRabbitmqDequeue(t *testing.T) {
 	backend := rabbitmq.New(rabbitmq.Options{
 		Address: "amqp://user:pass@localhost:5672",
 	})
-	queue := goatq.NewQueue(backend)
+	queue := cerra.NewQueue(backend)
 	queue.Start()
 
-	task := &goatq.Task{
+	task := &cerra.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}
@@ -46,8 +46,8 @@ func TestRabbitmqDequeue(t *testing.T) {
 		t.Errorf("rabbitmq enqueue error: %v", err)
 	}
 
-	var dequeuedTask *goatq.Task
-	queue.AddHandler(func(ctx context.Context, t *goatq.Task) error {
+	var dequeuedTask *cerra.Task
+	queue.AddHandler(func(ctx context.Context, t *cerra.Task) error {
 		dequeuedTask = t
 		return nil
 	})

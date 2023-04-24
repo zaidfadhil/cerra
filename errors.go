@@ -1,9 +1,9 @@
-package goatq
+package cerra
 
 import "errors"
 
 var (
-	ErrEmtpyQueue    = errors.New("goatq: empty queue")
-	ErrInActiveQueue = errors.New("goatq: inactive queue")
-	ErrQueueClosed   = errors.New("goatq: queue closed")
+	ErrEmtpyQueue    = errors.New("cerra: empty queue")
+	ErrInActiveQueue = errors.New("cerra: inactive queue")
+	ErrQueueClosed   = errors.New("cerra: queue closed")
 )

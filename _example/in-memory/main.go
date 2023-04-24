@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/zaidfadhil/goatq"
+	"github.com/zaidfadhil/cerra"
 )
 
 type Model struct {
@@ -13,16 +13,16 @@ type Model struct {
 	Num   int
 }
 
-func newTask(title string, num int) (*goatq.Task, error) {
+func newTask(title string, num int) (*cerra.Task, error) {
 	payload, err := json.Marshal(&Model{Title: title, Num: num})
 	if err != nil {
 		return nil, err
 	}
 	fmt.Println("set:", payload)
-	return goatq.NewTask("yo:queue", payload), nil
+	return cerra.NewTask("yo:queue", payload), nil
 }
 
-func handleTask(ctx context.Context, t *goatq.Task) error {
+func handleTask(ctx context.Context, t *cerra.Task) error {
 	var model Model
 	if err := json.Unmarshal(t.Payload, &model); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v", err)
@@ -32,9 +32,9 @@ func handleTask(ctx context.Context, t *goatq.Task) error {
 }
 
 func main() {
-	m := goatq.NewManager()
+	m := cerra.NewManager()
 
-	queue := goatq.NewQueue(goatq.NewInMemoryBackend())
+	queue := cerra.NewQueue(cerra.NewInMemoryBackend())
 
 	for i := 0; i < 1000; i++ {
 		task, err := newTask("test-queue", i)

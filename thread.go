@@ -1,4 +1,4 @@
-package goatq
+package cerra
 
 import "sync"
 

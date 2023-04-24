@@ -1,17 +1,17 @@
-package goatq_test
+package cerra_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/zaidfadhil/goatq"
+	"github.com/zaidfadhil/cerra"
 )
 
 func TestEnqueue(t *testing.T) {
-	queue := goatq.NewQueue(goatq.NewInMemoryBackend())
+	queue := cerra.NewQueue(cerra.NewInMemoryBackend())
 
-	task := &goatq.Task{
+	task := &cerra.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}
@@ -23,11 +23,11 @@ func TestEnqueue(t *testing.T) {
 }
 
 func TestAddHandler(t *testing.T) {
-	queue := goatq.NewQueue(goatq.NewInMemoryBackend())
+	queue := cerra.NewQueue(cerra.NewInMemoryBackend())
 
-	var dequeuedTask *goatq.Task
+	var dequeuedTask *cerra.Task
 
-	queue.AddHandler(func(ctx context.Context, t *goatq.Task) error {
+	queue.AddHandler(func(ctx context.Context, t *cerra.Task) error {
 		dequeuedTask = t
 		return nil
 	})
@@ -35,7 +35,7 @@ func TestAddHandler(t *testing.T) {
 	queue.Start()
 	defer queue.Close()
 
-	task := &goatq.Task{
+	task := &cerra.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}

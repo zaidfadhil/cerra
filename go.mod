@@ -1,4 +1,4 @@
-module github.com/zaidfadhil/goatq
+module github.com/zaidfadhil/cerra
 
 go 1.20
 

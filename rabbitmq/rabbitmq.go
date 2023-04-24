@@ -8,7 +8,7 @@ import (
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
-	"github.com/zaidfadhil/goatq"
+	"github.com/zaidfadhil/cerra"
 )
 
 type Options struct {
@@ -19,7 +19,7 @@ type Options struct {
 	RoutingKey   string
 }
 
-var _ goatq.Backend = (*rabbiMQBackend)(nil)
+var _ cerra.Backend = (*rabbiMQBackend)(nil)
 
 type rabbiMQBackend struct {
 	options Options
@@ -69,7 +69,7 @@ func New(options Options) *rabbiMQBackend {
 	return b
 }
 
-func (b *rabbiMQBackend) Enqueue(task *goatq.Task) error {
+func (b *rabbiMQBackend) Enqueue(task *cerra.Task) error {
 	encodedTask, err := task.Encode()
 	if err != nil {
 		return err
@@ -90,10 +90,10 @@ func (b *rabbiMQBackend) Enqueue(task *goatq.Task) error {
 		})
 }
 
-func (b *rabbiMQBackend) Dequeue() (*goatq.Task, error) {
+func (b *rabbiMQBackend) Dequeue() (*cerra.Task, error) {
 	err := b.consumer()
 	if err != nil {
-		return nil, goatq.ErrInActiveQueue
+		return nil, cerra.ErrInActiveQueue
 	}
 
 	times := 0
@@ -102,9 +102,9 @@ loop:
 		select {
 		case task, ok := <-b.tasks:
 			if !ok {
-				return nil, goatq.ErrInActiveQueue
+				return nil, cerra.ErrInActiveQueue
 			}
-			var data goatq.Task
+			var data cerra.Task
 			_ = json.Unmarshal(task.Body, &data)
 			_ = task.Ack(false)
 			return &data, nil
@@ -116,7 +116,7 @@ loop:
 		}
 	}
 
-	return nil, goatq.ErrEmtpyQueue
+	return nil, cerra.ErrEmtpyQueue
 }
 
 func (b *rabbiMQBackend) Close() (err error) {
@@ -193,16 +193,16 @@ func defaultOptions(opts Options) Options {
 		opts.Address = "amqp://user:pass@localhost:5672"
 	}
 	if opts.Queue == "" {
-		opts.Queue = "goatq-queue"
+		opts.Queue = "cerra-queue"
 	}
 	if opts.ExchangeName == "" {
-		opts.ExchangeName = "goatq-exchange"
+		opts.ExchangeName = "cerra-exchange"
 	}
 	if opts.ExchangeType == "" {
 		opts.ExchangeType = "direct"
 	}
 	if opts.RoutingKey == "" {
-		opts.RoutingKey = "goatq-key"
+		opts.RoutingKey = "cerra-key"
 	}
 	return opts
 }

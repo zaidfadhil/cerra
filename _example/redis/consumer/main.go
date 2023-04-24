@@ -4,26 +4,26 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/zaidfadhil/goatq"
-	"github.com/zaidfadhil/goatq/redisq"
+	"github.com/zaidfadhil/cerra"
+	"github.com/zaidfadhil/cerra/redisq"
 )
 
-func handleTask(ctx context.Context, t *goatq.Task) error {
+func handleTask(ctx context.Context, t *cerra.Task) error {
 	fmt.Println("get", string(t.Payload))
 	return nil
 }
 
 func main() {
-	m := goatq.NewManager()
+	m := cerra.NewManager()
 
 	redisQueue := redisq.New(redisq.Options{
 		Address:  "localhost:6379",
 		Password: "redis",
-		Stream:   "goatq",
-		Group:    "goatq",
-		Consumer: "goatq",
+		Stream:   "cerra",
+		Group:    "cerra",
+		Consumer: "cerra",
 	})
-	queue := goatq.NewQueue(redisQueue)
+	queue := cerra.NewQueue(redisQueue)
 
 	queue.AddHandler(handleTask)
 
