@@ -12,6 +12,8 @@ import (
 )
 
 type Options struct {
+	Client *amqp.Connection
+
 	Address      string
 	Queue        string
 	ExchangeName string
@@ -41,9 +43,13 @@ func New(options Options) *rabbiMQBackend {
 	}
 	var err error
 
-	b.connection, err = amqp.Dial(b.options.Address)
-	if err != nil {
-		log.Fatalf("amqp dial error %v", err)
+	if b.options.Client != nil {
+		b.connection = b.options.Client
+	} else {
+		b.connection, err = amqp.Dial(b.options.Address)
+		if err != nil {
+			log.Fatalf("amqp dial error %v", err)
+		}
 	}
 
 	b.channel, err = b.connection.Channel()
