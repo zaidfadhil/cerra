@@ -42,7 +42,7 @@ func main() {
 	// Set Max number of workers. default number is (runtime.NumCPU() * 2)
 	queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 2)
 
-    // Update max number of workers.
+	// Update max number of workers.
 	queue.UpdateMaxWorkerNum(5)
 
 	// Add a handler function to the queue
