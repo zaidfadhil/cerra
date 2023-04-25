@@ -29,13 +29,16 @@ type Queue struct {
 	activeWorkers uint32
 }
 
-func NewQueue(backend Backend) *Queue {
+func NewQueue(backend Backend, workers int) *Queue {
+	if workers <= 0 {
+		workers = runtime.NumCPU() * 2
+	}
 	return &Queue{
 		Backend:      backend,
 		group:        newRoutineGroup(),
 		quit:         make(chan struct{}),
 		ready:        make(chan struct{}, 1),
-		maxWorkerNum: runtime.NumCPU() * 2,
+		maxWorkerNum: workers,
 	}
 }
 

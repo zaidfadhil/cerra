@@ -23,7 +23,7 @@ func main() {
 		ExchangeType: "direct",
 		RoutingKey:   "cerra-key",
 	})
-	queue := cerra.NewQueue(rabbitQueue)
+	queue := cerra.NewQueue(rabbitQueue, 2)
 
 	queue.AddHandler(handleTask)
 

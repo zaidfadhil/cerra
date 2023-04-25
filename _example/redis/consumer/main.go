@@ -23,7 +23,7 @@ func main() {
 		Group:    "cerra",
 		Consumer: "cerra",
 	})
-	queue := cerra.NewQueue(redisQueue)
+	queue := cerra.NewQueue(redisQueue, 2)
 
 	queue.AddHandler(handleTask)
 

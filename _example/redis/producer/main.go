@@ -17,7 +17,7 @@ func main() {
 		Group:    "cerra",
 		Consumer: "cerra",
 	})
-	queue := cerra.NewQueue(redisQueue)
+	queue := cerra.NewQueue(redisQueue, 0)
 
 	for i := 0; i < 100000; i++ {
 		task := cerra.NewTask("test", []byte(fmt.Sprint(i)))

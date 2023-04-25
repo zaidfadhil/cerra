@@ -13,7 +13,7 @@ func TestRabbitmqEnqueue(t *testing.T) {
 	backend := rabbitmq.New(rabbitmq.Options{
 		Address: "amqp://user:pass@localhost:5672",
 	})
-	queue := cerra.NewQueue(backend)
+	queue := cerra.NewQueue(backend, 1)
 	defer queue.Close()
 
 	task := &cerra.Task{
@@ -33,7 +33,7 @@ func TestRabbitmqDequeue(t *testing.T) {
 	backend := rabbitmq.New(rabbitmq.Options{
 		Address: "amqp://user:pass@localhost:5672",
 	})
-	queue := cerra.NewQueue(backend)
+	queue := cerra.NewQueue(backend, 1)
 	queue.Start()
 
 	task := &cerra.Task{

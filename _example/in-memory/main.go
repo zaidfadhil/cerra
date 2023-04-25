@@ -34,7 +34,7 @@ func handleTask(ctx context.Context, t *cerra.Task) error {
 func main() {
 	m := cerra.NewManager()
 
-	queue := cerra.NewQueue(cerra.NewInMemoryBackend())
+	queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 2)
 
 	for i := 0; i < 1000; i++ {
 		task, err := newTask("test-queue", i)

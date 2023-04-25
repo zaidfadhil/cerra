@@ -9,7 +9,7 @@ import (
 )
 
 func TestEnqueue(t *testing.T) {
-	queue := cerra.NewQueue(cerra.NewInMemoryBackend())
+	queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 1)
 
 	task := &cerra.Task{
 		Name:    "test_task",
@@ -23,7 +23,7 @@ func TestEnqueue(t *testing.T) {
 }
 
 func TestAddHandler(t *testing.T) {
-	queue := cerra.NewQueue(cerra.NewInMemoryBackend())
+	queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 1)
 
 	var dequeuedTask *cerra.Task
 

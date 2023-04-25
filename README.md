@@ -39,9 +39,10 @@ import (
 func main() {
 
 	// Create a new queue with the in-memory backend
-	queue := cerra.NewQueue(cerra.NewInMemoryBackend())
+    // Set Max number of workers. default number is (runtime.NumCPU() * 2)
+	queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 2)
 
-    // Update max number of workers. The default number of CPUs * 2
+    // Update max number of workers.
 	queue.UpdateMaxWorkerNum(5)
 
 	// Add a handler function to the queue
@@ -85,7 +86,7 @@ backend := redisq.New(redisq.Options{
 })
 
 // Create a new queue
-queue := cerra.NewQueue(backend)
+queue := cerra.NewQueue(backend, 0)
 ```
 
 and the same for using RabbitMQ
@@ -101,7 +102,7 @@ backend := rabbitmq.New(rabbitmq.Options{
 })
 
 // Create a new queue
-queue := cerra.NewQueue(backend)
+queue := cerra.NewQueue(backend, 0)
 ```
 
 ## License

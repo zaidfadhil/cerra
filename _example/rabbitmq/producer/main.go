@@ -17,7 +17,7 @@ func main() {
 		ExchangeType: "direct",
 		RoutingKey:   "cerra-key",
 	})
-	queue := cerra.NewQueue(rabbitQueue)
+	queue := cerra.NewQueue(rabbitQueue, 0)
 
 	for i := 0; i < 100; i++ {
 		task := cerra.NewTask("test", []byte(fmt.Sprint(i)))
