@@ -3,7 +3,7 @@ Cerra is a simple task queue library in Go that supports in-memory, Redis, and R
 
 ## Features
 
-* [x] Support In-Memory with buffer channels
+* [x] Support In-Memory
 * [x] Support Redis
 * [x] Support RabbitMQ
 
