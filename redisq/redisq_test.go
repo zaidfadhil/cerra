@@ -1,65 +1,70 @@
 package redisq_test
 
 import (
+	"context"
 	"testing"
+	"time"
 
 	"github.com/zaidfadhil/cerra"
 	"github.com/zaidfadhil/cerra/redisq"
 )
 
-func TestRedisqEnqueue(t *testing.T) {
+func TestRedisEnqueue(t *testing.T) {
 	backend := redisq.New(redisq.Options{
 		Address: "localhost:6379",
 	})
-	defer backend.Close()
+	queue := cerra.NewQueue(backend, 1)
+	defer queue.Close()
 
 	task := &cerra.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}
 
-	err := backend.Enqueue(task)
+	err := queue.Enqueue(task)
 	if err != nil {
-		t.Errorf("redisq enqueu error: %v", err)
+		t.Errorf("rabbitmq enqueu error: %v", err)
 	}
+
+	time.Sleep(50 * time.Millisecond)
 }
 
-func TestRedisqDequeue(t *testing.T) {
+func TestRedisDequeue(t *testing.T) {
 	backend := redisq.New(redisq.Options{
 		Address: "localhost:6379",
 	})
-	defer backend.Close()
+	queue := cerra.NewQueue(backend, 1)
+	queue.Start()
 
 	task := &cerra.Task{
 		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}
 
-	err := backend.Enqueue(task)
+	err := queue.Enqueue(task)
 	if err != nil {
-		t.Errorf("redisq enqueu error: %v", err)
+		t.Errorf("rabbitmq enqueue error: %v", err)
 	}
 
-	dequeuedTask, err := backend.Dequeue()
-	if err != nil {
-		t.Errorf("redisq dequeu error: %v", err)
+	var dequeuedTask *cerra.Task
+	queue.AddHandler(func(ctx context.Context, t *cerra.Task) error {
+		dequeuedTask = t
+		return nil
+	})
+
+	time.Sleep(100 * time.Millisecond)
+
+	if dequeuedTask == nil {
+		t.Error("handler was not called")
 	}
 
 	if dequeuedTask.Name != task.Name {
-		t.Error("redisq dequeue task name != queued task name")
+		t.Error("rabbitmq dequeue task name != queued task name")
 	}
 
 	if string(dequeuedTask.Payload) != string(task.Payload) {
-		t.Error("redisq dequeue task payload != queued task payload")
+		t.Error("rabbitmq dequeue task payload != queued task payload")
 	}
-}
 
-func TestRedisqClose(t *testing.T) {
-	backend := redisq.New(redisq.Options{
-		Address: "localhost:6379",
-	})
-	err := backend.Close()
-	if err != nil {
-		t.Errorf("redisq close connection error: %v", err)
-	}
+	queue.Close()
 }
