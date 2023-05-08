@@ -1,4 +1,7 @@
 # Cerra
+[![Go Reference](https://pkg.go.dev/badge/github.com/zaidfadhil/cerra.svg)](https://pkg.go.dev/github.com/zaidfadhil/cerra)
+[![Go Report Card](https://goreportcard.com/badge/github.com/zaidfadhil/cerra)](https://goreportcard.com/report/github.com/zaidfadhil/cerra)
+
 Cerra is a simple task queue library in Go that supports in-memory, Redis, and RabbitMQ backends.
 
 ## Features
