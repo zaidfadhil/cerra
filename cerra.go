@@ -154,18 +154,9 @@ func (q *Queue) runFunc(ctx context.Context, t *Task) {
 		cancel()
 	}()
 
-	go func() {
-		for _, f := range q.handleFuncs {
-		loop:
-			for {
-				if err := f(ctx, t); err != nil {
-					log.Printf("internal error: %v", err)
-				}
-				select {
-				case <-ctx.Done():
-					break loop
-				}
-			}
+	for _, f := range q.handleFuncs {
+		if err := f(ctx, t); err != nil {
+			log.Printf("internal error: %v", err)
 		}
-	}()
+	}
 }
