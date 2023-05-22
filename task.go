@@ -9,17 +9,14 @@ type Task struct {
 	Name    string `json:"name"`
 	Payload []byte `json:"payload"`
 
-	retryCount int
-	timeout    time.Duration
-	delay      time.Duration
+	Timeout time.Duration `json:"timeout"`
 }
 
 func NewTask(name string, payload []byte) *Task {
 	return &Task{
 		Name:    name,
 		Payload: payload,
-
-		timeout: 60 * time.Minute,
+		Timeout: 60 * time.Minute,
 	}
 }
 
@@ -28,20 +25,14 @@ func (t *Task) Encode() ([]byte, error) {
 }
 
 func (t *Task) ToMap() map[string]interface{} {
-	return map[string]interface{}{"name": t.Name, "payload": t.Payload}
+	return map[string]interface{}{
+		"name":    t.Name,
+		"payload": t.Payload,
+		"timeout": t.Timeout,
+	}
 }
 
-// func (t *Task) Delay(time time.Duration) *Task {
-// 	t.delay = time
-// 	return t
-// }
-//
-// func (t *Task) Timeout(time time.Duration) *Task {
-// 	t.timeout = time
-// 	return t
-// }
-//
-// func (t *Task) Retry(num int) *Task {
-// 	t.retry = num
-// 	return t
-// }
+func (t *Task) AddTimeout(time time.Duration) *Task {
+	t.Timeout = time
+	return t
+}

@@ -147,16 +147,25 @@ func (q *Queue) schedule() {
 }
 
 func (q *Queue) runFunc(ctx context.Context, t *Task) {
-	ctx, cancel := context.WithTimeout(ctx, t.timeout)
+	ctx, cancel := context.WithTimeout(ctx, t.Timeout)
 	defer func() {
 		atomic.AddUint32(&q.activeWorkers, ^uint32(0))
 		q.schedule()
 		cancel()
 	}()
 
-	for _, f := range q.handleFuncs {
-		if err := f(ctx, t); err != nil {
-			log.Printf("internal error: %v", err)
+	go func() {
+		for _, f := range q.handleFuncs {
+		loop:
+			for {
+				if err := f(ctx, t); err != nil {
+					log.Printf("internal error: %v", err)
+				}
+				select {
+				case <-ctx.Done():
+					break loop
+				}
+			}
 		}
-	}
+	}()
 }
