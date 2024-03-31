@@ -3,8 +3,8 @@ module github.com/zaidfadhil/cerra
 go 1.20
 
 require (
-	github.com/rabbitmq/amqp091-go v1.8.0
-	github.com/redis/go-redis/v9 v9.0.3
+	github.com/rabbitmq/amqp091-go v1.9.0
+	github.com/redis/go-redis/v9 v9.5.1
 )
 
 require (
