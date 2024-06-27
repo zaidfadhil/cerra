@@ -12,7 +12,7 @@ func TestEnqueue(t *testing.T) {
 	queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 1)
 
 	task := &cerra.Task{
-		Name:    "test_task",
+		ID:      "test_task",
 		Payload: []byte("test_payload"),
 	}
 
@@ -36,7 +36,7 @@ func TestAddHandler(t *testing.T) {
 	defer queue.Close()
 
 	task := &cerra.Task{
-		Name:    "test_task",
+		ID:      "test_task",
 		Payload: []byte("test_payload"),
 	}
 
@@ -51,7 +51,7 @@ func TestAddHandler(t *testing.T) {
 		t.Error("handler was not called")
 	}
 
-	if dequeuedTask.Name != task.Name {
+	if dequeuedTask.ID != task.ID {
 		t.Error("dequeue task name != queued task name")
 	}
 

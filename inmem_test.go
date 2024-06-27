@@ -9,7 +9,6 @@ import (
 func TestInMemEnqueue(t *testing.T) {
 	backend := cerra.NewInMemoryBackend()
 	task := &cerra.Task{
-		Name:    "test_task",
 		Payload: []byte("test_payload"),
 	}
 
@@ -23,7 +22,7 @@ func TestInMemDequeue(t *testing.T) {
 	backend := cerra.NewInMemoryBackend()
 
 	task := &cerra.Task{
-		Name:    "test_task",
+		ID:      "id",
 		Payload: []byte("test_payload"),
 	}
 
@@ -37,7 +36,7 @@ func TestInMemDequeue(t *testing.T) {
 		t.Errorf("redisq dequeu error: %v", err)
 	}
 
-	if dequeuedTask.Name != task.Name {
+	if dequeuedTask.ID != task.ID {
 		t.Error("redisq dequeue task name != queued task name")
 	}
 

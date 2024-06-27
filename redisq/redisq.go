@@ -103,7 +103,7 @@ func (b *redisBackend) Dequeue() (*cerra.Task, error) {
 	}
 
 	return &cerra.Task{
-		Name:    task.Values["name"].(string),
+		ID:      task.Values["id"].(string),
 		Payload: []byte(task.Values["payload"].(string)),
 	}, nil
 }

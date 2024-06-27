@@ -6,15 +6,21 @@ import (
 )
 
 type Task struct {
-	Name    string `json:"name"`
-	Payload []byte `json:"payload"`
-
+	ID      string        `json:"id"`
+	Payload []byte        `json:"payload"`
 	Timeout time.Duration `json:"timeout"`
 }
 
-func NewTask(name string, payload []byte) *Task {
+func NewTask(payload []byte) *Task {
 	return &Task{
-		Name:    name,
+		Payload: payload,
+		Timeout: 60 * time.Minute,
+	}
+}
+
+func NewTaskWithID(id string, payload []byte) *Task {
+	return &Task{
+		ID:      id,
 		Payload: payload,
 		Timeout: 60 * time.Minute,
 	}
@@ -26,7 +32,7 @@ func (t *Task) Encode() ([]byte, error) {
 
 func (t *Task) ToMap() map[string]interface{} {
 	return map[string]interface{}{
-		"name":    t.Name,
+		"id":      t.ID,
 		"payload": t.Payload,
 		"timeout": t.Timeout,
 	}
