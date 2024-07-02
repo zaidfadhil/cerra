@@ -50,7 +50,7 @@ func main() {
 
 	// Add a handler function to the queue
 	queue.AddHandler(func(ctx context.Context, task *cerra.Task) error {
-		fmt.Printf("Received task with Name %s and payload %v\n", task.Name, task.Payload)
+		fmt.Printf("Received task with ID %s and payload %v\n", task.ID, task.Payload)
 		return nil
 	})
 

@@ -87,7 +87,7 @@ func (b *rabbiMQBackend) Enqueue(task *cerra.Task) error {
 		false,
 		false,
 		amqp.Publishing{
-			Headers:         amqp.Table{},
+			Headers:         amqp.Table{"task_id": task.ID},
 			ContentType:     "text/plain",
 			ContentEncoding: "",
 			Body:            encodedTask,
