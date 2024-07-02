@@ -144,7 +144,6 @@ func (b *redisBackend) consumer() (err error) {
 }
 
 func (b *redisBackend) fetch() {
-
 	for {
 		select {
 		case <-b.stop:
