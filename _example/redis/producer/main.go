@@ -20,7 +20,7 @@ func main() {
 	queue := cerra.NewQueue(redisQueue, 0)
 
 	for i := 0; i < 100; i++ {
-		task := cerra.NewTask([]byte(fmt.Sprint(i)))
+		task := cerra.NewTaskWithID(fmt.Sprint(i), []byte(fmt.Sprint(i)))
 		err := queue.Enqueue(task)
 		if err != nil {
 			fmt.Println(err)

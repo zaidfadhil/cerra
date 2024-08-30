@@ -27,7 +27,7 @@ func handleTask(ctx context.Context, t *cerra.Task) error {
 	if err := json.Unmarshal(t.Payload, &model); err != nil {
 		return fmt.Errorf("json.Unmarshal failed: %v", err)
 	}
-	fmt.Println("get-1:", model.Num)
+	fmt.Println("get:", model.Num)
 	return nil
 }
 

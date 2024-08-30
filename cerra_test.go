@@ -63,7 +63,6 @@ func TestAddHandler(t *testing.T) {
 
 func TestTaskRetry(t *testing.T) {
 	queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 1)
-	queue.SetRetryCount(5)
 
 	var taskRetryCount = 0
 
@@ -76,8 +75,9 @@ func TestTaskRetry(t *testing.T) {
 	defer queue.Close()
 
 	task := &cerra.Task{
-		ID:      "test_task",
-		Payload: []byte("test_payload"),
+		ID:         "test_task",
+		Payload:    []byte("test_payload"),
+		RetryLimit: 5,
 	}
 
 	err := queue.Enqueue(task)

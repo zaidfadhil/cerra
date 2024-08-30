@@ -3,6 +3,7 @@ package redisq
 import (
 	"context"
 	"log"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -102,10 +103,7 @@ func (b *redisBackend) Dequeue() (*cerra.Task, error) {
 		return nil, cerra.ErrInActiveQueue
 	}
 
-	return &cerra.Task{
-		ID:      task.Values["id"].(string),
-		Payload: []byte(task.Values["payload"].(string)),
-	}, nil
+	return convertXMessageToTask(task), nil
 }
 
 func (b *redisBackend) Close() error {
@@ -233,4 +231,19 @@ func defaultOptions(opts Options) Options {
 		opts.Consumer = "cerra-consumer"
 	}
 	return opts
+}
+
+// TODO: convert this to struct
+func convertXMessageToTask(message redis.XMessage) *cerra.Task {
+	base, bitSize := 10, 64
+	timeout, _ := strconv.ParseInt(message.Values["timeout"].(string), base, bitSize)
+	retryCount, _ := strconv.ParseInt(message.Values["retry_count"].(string), base, bitSize)
+	retryLimit, _ := strconv.ParseInt(message.Values["retry_limit"].(string), base, bitSize)
+	return &cerra.Task{
+		ID:         message.Values["id"].(string),
+		Payload:    []byte(message.Values["payload"].(string)),
+		Timeout:    time.Duration(timeout),
+		RetryCount: int(retryCount),
+		RetryLimit: int(retryLimit),
+	}
 }

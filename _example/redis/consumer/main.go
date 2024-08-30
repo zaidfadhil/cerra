@@ -9,7 +9,7 @@ import (
 )
 
 func handleTask(ctx context.Context, t *cerra.Task) error {
-	fmt.Println("get", string(t.Payload))
+	fmt.Println("get", t)
 	return nil
 }
 
