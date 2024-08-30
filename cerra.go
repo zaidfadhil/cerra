@@ -25,6 +25,7 @@ type Queue struct {
 	stop         sync.Once
 	maxWorkerNum int
 	handleFuncs  []func(context.Context, *Task) error
+	retryCount   int
 
 	activeWorkers uint32
 }
@@ -39,10 +40,15 @@ func NewQueue(backend Backend, workers int) *Queue {
 		quit:         make(chan struct{}),
 		ready:        make(chan struct{}, 1),
 		maxWorkerNum: workers,
+		retryCount:   0,
 	}
 }
 
 func (q *Queue) Enqueue(t *Task) error {
+	if t.RetryCount <= 0 && q.retryCount > 0 {
+		t.SetRetry(q.retryCount)
+	}
+
 	return q.Backend.Enqueue(t)
 }
 
@@ -50,6 +56,12 @@ func (q *Queue) UpdateMaxWorkerNum(num int) {
 	if num != 0 {
 		q.maxWorkerNum = num
 		q.schedule()
+	}
+}
+
+func (q *Queue) SetRetryCount(num int) {
+	if num >= 0 {
+		q.retryCount = num
 	}
 }
 
@@ -155,8 +167,20 @@ func (q *Queue) runFunc(ctx context.Context, t *Task) {
 	}()
 
 	for _, f := range q.handleFuncs {
-		if err := f(ctx, t); err != nil {
+		if t.RetryCount <= 0 && q.retryCount > 0 {
+			t.SetRetry(q.retryCount)
+		}
+
+		err := f(ctx, t)
+		if err != nil {
 			log.Printf("internal error: %v", err)
+			if t.RetryCount > 0 {
+				for i := 0; i < t.RetryCount; i++ {
+					if err := f(ctx, t); err != nil {
+						log.Printf("internal error: %v, retry_count: %v", err, i+1)
+					}
+				}
+			}
 		}
 	}
 }

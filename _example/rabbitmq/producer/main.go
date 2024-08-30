@@ -20,7 +20,7 @@ func main() {
 	queue := cerra.NewQueue(rabbitQueue, 0)
 
 	for i := 0; i < 100; i++ {
-		task := cerra.NewTask("test", []byte(fmt.Sprint(i)))
+		task := cerra.NewTask([]byte(fmt.Sprint(i)))
 		err := queue.Enqueue(task)
 		if err != nil {
 			fmt.Println(err)
