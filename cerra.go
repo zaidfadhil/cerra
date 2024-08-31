@@ -155,8 +155,21 @@ func (q *Queue) runFunc(ctx context.Context, t *Task) {
 	}()
 
 	for _, f := range q.handleFuncs {
-		if err := f(ctx, t); err != nil {
-			log.Printf("internal error: %v", err)
+		err := f(ctx, t)
+		if err != nil {
+			if t.RetryCount == 0 {
+				log.Printf("task error: %v", err)
+			} else {
+				log.Printf("task error: %v. retry: %v/%v", err, t.RetryCount, t.RetryLimit)
+			}
+
+			if t.RetryLimit > 0 && t.RetryCount != t.RetryLimit {
+				t.RetryCount++
+				err = q.Enqueue(t)
+				if err != nil {
+					log.Printf("task retry error: %v. retries: %v/%v", err, t.RetryCount, t.RetryLimit)
+				}
+			}
 		}
 	}
 }
