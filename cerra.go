@@ -159,11 +159,12 @@ func (q *Queue) runFunc(ctx context.Context, t *Task) {
 		if err != nil {
 			if t.RetryCount == 0 {
 				log.Printf("task error: %v", err)
+			} else {
+				log.Printf("task error: %v. retry: %v/%v", err, t.RetryCount, t.RetryLimit)
 			}
 
 			if t.RetryLimit > 0 && t.RetryCount != t.RetryLimit {
 				t.RetryCount++
-				log.Printf("task error: %v. retries: %v/%v", err, t.RetryCount, t.RetryLimit)
 				err = q.Enqueue(t)
 				if err != nil {
 					log.Printf("task retry error: %v. retries: %v/%v", err, t.RetryCount, t.RetryLimit)
