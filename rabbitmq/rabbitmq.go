@@ -70,7 +70,10 @@ func New(options Options) *rabbiMQBackend {
 		log.Fatalf("amqp exchange declare error: %v", err)
 	}
 
-	b.bind()
+	_, err = b.bind()
+	if err != nil {
+		log.Fatalf("amqp bind error: %v", err)
+	}
 
 	return b
 }

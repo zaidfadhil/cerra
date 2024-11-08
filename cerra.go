@@ -55,8 +55,7 @@ func (q *Queue) UpdateMaxWorkerNum(num int) {
 
 func (q *Queue) Close() {
 	q.stop.Do(func() {
-		err := q.Backend.Close()
-		if err != nil {
+		if err := q.Backend.Close(); err != nil {
 			log.Println(err)
 		}
 		close(q.quit)
@@ -66,8 +65,9 @@ func (q *Queue) Close() {
 
 func (q *Queue) AddHandler(handler func(context.Context, *Task) error) {
 	q.Lock()
+	defer q.Unlock()
+
 	q.handleFuncs = append(q.handleFuncs, handler)
-	q.Unlock()
 }
 
 func (q *Queue) Start() {
@@ -78,12 +78,10 @@ func (q *Queue) Start() {
 
 func (q *Queue) start() {
 	tasks := make(chan *Task, 1)
-
 	ctx := context.Background()
 
 	for {
 		q.schedule()
-
 		select {
 		case <-q.ready:
 		case <-q.quit:
@@ -136,7 +134,7 @@ func (q *Queue) schedule() {
 	q.Lock()
 	defer q.Unlock()
 
-	if int(q.activeWorkers) >= q.maxWorkerNum {
+	if int(atomic.LoadUint32(&q.activeWorkers)) >= q.maxWorkerNum {
 		return
 	}
 
@@ -155,19 +153,17 @@ func (q *Queue) runFunc(ctx context.Context, t *Task) {
 	}()
 
 	for _, f := range q.handleFuncs {
-		err := f(ctx, t)
-		if err != nil {
+		if err := f(ctx, t); err != nil {
 			if t.RetryCount == 0 {
-				log.Printf("task error: %v", err)
+				log.Printf("cerra task error: %v", err)
 			} else {
-				log.Printf("task error: %v. retry: %v/%v", err, t.RetryCount, t.RetryLimit)
+				log.Printf("cerra task error: %v. retry: %v/%v", err, t.RetryCount, t.RetryLimit)
 			}
 
 			if t.RetryLimit > 0 && t.RetryCount != t.RetryLimit {
 				t.RetryCount++
-				err = q.Enqueue(t)
-				if err != nil {
-					log.Printf("task retry error: %v. retries: %v/%v", err, t.RetryCount, t.RetryLimit)
+				if err = q.Enqueue(t); err != nil {
+					log.Printf("cerra task retry error: %v. retries: %v/%v", err, t.RetryCount, t.RetryLimit)
 				}
 			}
 		}

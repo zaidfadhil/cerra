@@ -82,14 +82,10 @@ func New(options Options) *redisBackend {
 }
 
 func (b *redisBackend) Enqueue(task *cerra.Task) error {
-	ctx := context.Background()
-
-	err := b.rdb.XAdd(ctx, &redis.XAddArgs{
+	return b.rdb.XAdd(context.Background(), &redis.XAddArgs{
 		Stream: b.options.Stream,
 		Values: task.ToMap(),
 	}).Err()
-
-	return err
 }
 
 func (b *redisBackend) Dequeue() (*cerra.Task, error) {
@@ -158,8 +154,9 @@ func (b *redisBackend) fetch() {
 			Block:    b.options.blockTime,
 		}).Result()
 		if err != nil {
+
 			if strings.HasPrefix(err.Error(), "NOGROUP") {
-				b.createGroup(ctx)
+				b.createGroup(ctx) //nolint:all
 			}
 			log.Printf("error reading redis stream: %v", err)
 			continue
