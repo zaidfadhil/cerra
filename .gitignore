@@ -18,3 +18,5 @@
 /tmp
 
 *.out
+
+*.sarif

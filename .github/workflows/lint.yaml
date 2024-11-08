@@ -1,0 +1,33 @@
+name: Lint
+
+on:
+  push:
+    paths:
+      - '**/*.go'
+  pull_request:
+    paths:
+      - '**/*.go'
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          check-latest: true
+      - name: install dependencies
+        run: |
+          go get -v -t -d ./...
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v1.60
+      - name: upload golangci-lint results
+        uses: actions/upload-artifact@v4
+        with:
+          name: golangci-lint-results
+          path: ./golangci-lint.log
