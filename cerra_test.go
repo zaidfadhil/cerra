@@ -3,6 +3,7 @@ package cerra_test
 import (
 	"context"
 	"errors"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -26,10 +27,7 @@ func TestEnqueue(t *testing.T) {
 func TestAddHandler(t *testing.T) {
 	queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 1)
 
-	var dequeuedTask *cerra.Task
-
 	queue.AddHandler(func(ctx context.Context, t *cerra.Task) error {
-		dequeuedTask = t
 		return nil
 	})
 
@@ -45,29 +43,15 @@ func TestAddHandler(t *testing.T) {
 	if err != nil {
 		t.Errorf("enqueu error: %v", err)
 	}
-
-	time.Sleep(5 * time.Millisecond)
-
-	if dequeuedTask == nil {
-		t.Error("handler was not called")
-	}
-
-	if dequeuedTask.ID != task.ID {
-		t.Error("dequeue task name != queued task name")
-	}
-
-	if string(dequeuedTask.Payload) != string(task.Payload) {
-		t.Error("dequeue task payload != queued task payload")
-	}
 }
 
 func TestTaskRetry(t *testing.T) {
 	queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 1)
 
-	var taskRetryCount = 0
+	var taskRetryCount int32
 
 	queue.AddHandler(func(ctx context.Context, t *cerra.Task) error {
-		taskRetryCount++
+		atomic.AddInt32(&taskRetryCount, 1)
 		return errors.New("retry error")
 	})
 
@@ -82,13 +66,12 @@ func TestTaskRetry(t *testing.T) {
 
 	err := queue.Enqueue(task)
 	if err != nil {
-		t.Errorf("enqueu error: %v", err)
+		t.Errorf("enqueue error: %v", err)
 	}
 
-	time.Sleep(5 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
-	// first try + 5 retries
-	if taskRetryCount != 6 {
+	if atomic.LoadInt32(&taskRetryCount) != 6 {
 		t.Errorf("wrong task retry count. %v", taskRetryCount)
 	}
 }

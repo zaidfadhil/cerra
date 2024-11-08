@@ -38,6 +38,8 @@ func (b *inMemoryBackend) Enqueue(task *Task) error {
 }
 
 func (b *inMemoryBackend) Dequeue() (*Task, error) {
+	b.Lock()
+	defer b.Unlock()
 
 	if b.count == 0 {
 		select {
@@ -48,9 +50,6 @@ func (b *inMemoryBackend) Dequeue() (*Task, error) {
 
 		return nil, ErrEmtpyQueue
 	}
-
-	b.Lock()
-	defer b.Unlock()
 
 	data := b.tasks[b.head]
 	b.tasks[b.head] = nil
