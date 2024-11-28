@@ -42,7 +42,7 @@ import (
 func main() {
 	// Create a new queue with the in-memory backend
 	// Set Max number of workers. 0 for max number of workers (runtime.NumCPU() * 2)
-    queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 0)
+        queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 0)
 
 	// Update max number of workers.
 	queue.UpdateMaxWorkerNum(5)
