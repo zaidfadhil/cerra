@@ -60,7 +60,7 @@ func main() {
 	for i := 0; i < 10; i++ {
 		task := cerra.NewTask([]byte(fmt.Sprint(i)))
 		err := queue.Enqueue(task) 
-        if err != nil {
+                if err != nil {
 			fmt.Printf("error enqueueing task: %v\n", err)
 		}
 		fmt.Println("Enqueue", i)
