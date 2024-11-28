@@ -40,15 +40,14 @@ import (
 )
 
 func main() {
-
 	// Create a new queue with the in-memory backend
-	// Set Max number of workers. default number is (runtime.NumCPU() * 2)
-	queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 2)
+	// Set Max number of workers. 0 for max number of workers (runtime.NumCPU() * 2)
+    queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 0)
 
 	// Update max number of workers.
 	queue.UpdateMaxWorkerNum(5)
 
-	// Add a handler function to the queue
+	// Add a handler function
 	queue.AddHandler(func(ctx context.Context, task *cerra.Task) error {
 		fmt.Printf("Received task with ID %s and payload %v\n", task.ID, task.Payload)
 		return nil
@@ -59,9 +58,10 @@ func main() {
 
 	// Enqueue some tasks
 	for i := 0; i < 10; i++ {
-		task := cerra.NewTask(fmt.Sprint(i), []byte(fmt.Sprint(i)))
-		if err := queue.Enqueue(task); err != nil {
-			fmt.Printf("Error enqueueing task: %v\n", err)
+		task := cerra.NewTask([]byte(fmt.Sprint(i)))
+		err := queue.Enqueue(task) 
+        if err != nil {
+			fmt.Printf("error enqueueing task: %v\n", err)
 		}
 		fmt.Println("Enqueue", i)
 	}
