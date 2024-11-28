@@ -4,6 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/zaidfadhil/cerra"
 )
@@ -32,8 +35,6 @@ func handleTask(ctx context.Context, t *cerra.Task) error {
 }
 
 func main() {
-	m := cerra.NewManager()
-
 	queue := cerra.NewQueue(cerra.NewInMemoryBackend(), 2)
 
 	for i := 0; i < 100; i++ {
@@ -50,12 +51,28 @@ func main() {
 
 	queue.AddHandler(handleTask)
 
-	queue.Start()
-
-	m.OnShutdown(func() error {
+	done := shutdown(func(done chan<- struct{}) {
 		queue.Close()
-		return nil
+		done <- struct{}{}
 	})
 
-	<-m.Done()
+	queue.Start()
+
+	<-done
+}
+
+func shutdown(stop func(done chan<- struct{})) <-chan struct{} {
+	done := make(chan struct{})
+	s := make(chan os.Signal, 1)
+	signal.Notify(s,
+		syscall.SIGINT,
+		syscall.SIGTERM,
+		syscall.SIGQUIT,
+	)
+	go func() {
+		<-s
+		stop(done)
+		close(done)
+	}()
+	return done
 }

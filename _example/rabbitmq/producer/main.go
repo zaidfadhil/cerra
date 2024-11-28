@@ -9,7 +9,6 @@ import (
 )
 
 func main() {
-
 	rabbitQueue := rabbitmq.New(rabbitmq.Options{
 		Address:      "amqp://user:pass@localhost:5672/",
 		Queue:        "cerra",
