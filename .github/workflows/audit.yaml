@@ -18,6 +18,7 @@ jobs:
     steps:
       - name: checkout source
         uses: actions/checkout@v4
+
       - name: run gosec on main module
         uses: securego/gosec@master
         with:
@@ -32,7 +33,7 @@ jobs:
         uses: securego/gosec@master
         with:
           working-directory: amqp
-          args: '-no-fail -exclude=G104 -fmt sarif -out ../results_amqp.sarif ./...'
+          args: '-no-fail -exclude=G104 -fmt sarif -out results_amqp.sarif ./...'
       - name: upload amqp SARIF file
         uses: github/codeql-action/upload-sarif@v3
         with:
@@ -43,7 +44,7 @@ jobs:
         uses: securego/gosec@master
         with:
           working-directory: redis
-          args: '-no-fail -exclude=G104 -fmt sarif -out ../results_redis.sarif ./...'
+          args: '-no-fail -exclude=G104 -fmt sarif -out results_redis.sarif ./...'
       - name: upload redis SARIF file
         uses: github/codeql-action/upload-sarif@v3
         with:
