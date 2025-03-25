@@ -1,4 +1,4 @@
-package redisq
+package redis
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/redis/go-redis/v9"
+	redis "github.com/redis/go-redis/v9"
 	"github.com/zaidfadhil/cerra"
 )
 
@@ -125,7 +125,7 @@ func (b *redisBackend) Close() error {
 func (b *redisBackend) consumer() (err error) {
 	b.startSync.Do(func() {
 		ctx := context.Background()
-		err := b.createGroup(ctx)
+		err = b.createGroup(ctx)
 		if err != nil {
 			if !strings.HasPrefix(err.Error(), "BUSYGROUP") {
 				log.Printf("error creating stream: %v", err)

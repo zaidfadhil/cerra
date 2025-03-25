@@ -8,7 +8,7 @@ import (
 	"syscall"
 
 	"github.com/zaidfadhil/cerra"
-	"github.com/zaidfadhil/cerra/redisq"
+	"github.com/zaidfadhil/cerra/redis"
 )
 
 func handleTask(ctx context.Context, t *cerra.Task) error {
@@ -17,14 +17,14 @@ func handleTask(ctx context.Context, t *cerra.Task) error {
 }
 
 func main() {
-	redisQueue := redisq.New(redisq.Options{
+	redisueue := redis.New(redis.Options{
 		Address:  "localhost:6379",
 		Password: "redis",
 		Stream:   "cerra",
 		Group:    "cerra",
 		Consumer: "cerra",
 	})
-	queue := cerra.NewQueue(redisQueue, 2)
+	queue := cerra.NewQueue(redisueue, 2)
 
 	queue.AddHandler(handleTask)
 

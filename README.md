@@ -2,13 +2,13 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/zaidfadhil/cerra.svg)](https://pkg.go.dev/github.com/zaidfadhil/cerra)
 [![Go Report Card](https://goreportcard.com/badge/github.com/zaidfadhil/cerra)](https://goreportcard.com/report/github.com/zaidfadhil/cerra)
 
-Cerra is a simple task queue library in Go that supports in-memory, Redis, and RabbitMQ backends.
+Cerra is a simple task queue library in Go that supports in-memory, Redis, and rabbitmq (amqp) backends.
 
 ## Features
 
 * [x] Support In-Memory
 * [x] Support Redis
-* [x] Support RabbitMQ
+* [x] Support rabbitmq (amqp)
 
 Resources:
 
@@ -76,11 +76,11 @@ func main() {
 
 ### More Backends
 
-to use Redis as a backend for the queues, just replace the in-memory backend with redisq
+to use Redis as a backend for the queues, just replace the in-memory backend with redis
 
 ```go
 // Create Redis Backend
-backend := redisq.New(redisq.Options{
+backend := redis.New(redis.Options{
 	Address:  "localhost:6379",
 	Password: "redis",
 	Stream:   "cerra",
@@ -92,11 +92,11 @@ backend := redisq.New(redisq.Options{
 queue := cerra.NewQueue(backend, 0)
 ```
 
-and the same for using RabbitMQ
+and the same for using rabbitmq with amqp
 
 ```go
-// Create RabbitMQ Backend
-backend := rabbitmq.New(rabbitmq.Options{
+// Create amqp Backend
+backend := amqp.New(amqp.Options{
 	Address:      "amqp://user:pass@localhost:5672/",
 	Queue:        "cerra",
 	ExchangeName: "cerra-exchange",

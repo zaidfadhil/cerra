@@ -1,4 +1,4 @@
-package rabbitmq_test
+package amqp_test
 
 import (
 	"context"
@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/zaidfadhil/cerra"
-	"github.com/zaidfadhil/cerra/rabbitmq"
+	"github.com/zaidfadhil/cerra/amqp"
 )
 
 func TestRabbitmqEnqueue(t *testing.T) {
-	backend := rabbitmq.New(rabbitmq.Options{
+	backend := amqp.New(amqp.Options{
 		Address: "amqp://user:pass@localhost:5672",
 	})
 	queue := cerra.NewQueue(backend, 1)
@@ -30,7 +30,7 @@ func TestRabbitmqEnqueue(t *testing.T) {
 }
 
 func TestRabbitmqDequeue(t *testing.T) {
-	backend := rabbitmq.New(rabbitmq.Options{
+	backend := amqp.New(amqp.Options{
 		Address: "amqp://user:pass@localhost:5672",
 	})
 	queue := cerra.NewQueue(backend, 1)
