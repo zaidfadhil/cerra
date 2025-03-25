@@ -1,8 +1,9 @@
 name: Audit
 
-# runs every at 00:00 on Sunday UTC time.
 on:
   push:
+  pull_request:
+  # runs every at 00:00 on Sunday UTC time.    
   schedule:
     - cron: '0 0 * * 0'
 
@@ -17,11 +18,29 @@ jobs:
     steps:
       - name: checkout source
         uses: actions/checkout@v4
-      - name: run gosec security scanner
-        uses: securego/gosec@master
-        with:
-          args: '-no-fail -exclude=G104 -fmt sarif -out results.sarif ./...'
-      - name: upload SARIF file
+      - name: install gosec
+        run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+        
+      - name: run gosec on main module
+        run: gosec -no-fail -exclude=G104 -fmt sarif -out results.sarif ./...
+      - name: upload main module SARIF file
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
+          category: gosec-main
+        
+      - name: run gosec on amqp module and upload
+        run: cd amqp && gosec -no-fail -exclude=G104 -fmt sarif -out ../results_amqp.sarif ./...
+      - name: upload amqp SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results_amqp.sarif
+          category: gosec-amqp
+        
+      - name: run gosec on redis module and upload
+        run: cd redis && gosec -no-fail -exclude=G104 -fmt sarif -out ../results_redis.sarif ./...
+      - name: upload redis SARIF file
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: results_redis.sarif
+          category: gosec-redis
