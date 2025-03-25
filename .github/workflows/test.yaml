@@ -50,9 +50,3 @@ jobs:
       run: make install
     - name: run Test
       run: make test
-    - name: go coverage badge
-      uses: tj-actions/coverage-badge-go@v1
-      if: ${{ matrix.go-version == '1.24' }}
-      with:
-        green: 80
-        filename: coverage.out
