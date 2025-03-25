@@ -1,4 +1,5 @@
 # Cerra
+[![Test](https://github.com/zaidfadhil/cerra/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/zaidfadhil/cerra/actions/workflows/test.yaml)
 [![Go Reference](https://pkg.go.dev/badge/github.com/zaidfadhil/cerra.svg)](https://pkg.go.dev/github.com/zaidfadhil/cerra)
 [![Go Report Card](https://goreportcard.com/badge/github.com/zaidfadhil/cerra)](https://goreportcard.com/report/github.com/zaidfadhil/cerra)
 
