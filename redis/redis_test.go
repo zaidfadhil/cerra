@@ -1,4 +1,4 @@
-package redisq_test
+package redis_test
 
 import (
 	"context"
@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"github.com/zaidfadhil/cerra"
-	"github.com/zaidfadhil/cerra/redisq"
+	"github.com/zaidfadhil/cerra/redis"
 )
 
 func TestRedisEnqueue(t *testing.T) {
-	backend := redisq.New(redisq.Options{
+	backend := redis.New(redis.Options{
 		Address: "localhost:6379",
 	})
 	queue := cerra.NewQueue(backend, 1)
@@ -28,7 +28,7 @@ func TestRedisEnqueue(t *testing.T) {
 }
 
 func TestRedisDequeue(t *testing.T) {
-	backend := redisq.New(redisq.Options{
+	backend := redis.New(redis.Options{
 		Address: "localhost:6379",
 	})
 	queue := cerra.NewQueue(backend, 1)

@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"github.com/zaidfadhil/cerra"
-	"github.com/zaidfadhil/cerra/rabbitmq"
+	"github.com/zaidfadhil/cerra/amqp"
 )
 
 func main() {
-	rabbitQueue := rabbitmq.New(rabbitmq.Options{
+	rabbitQueue := amqp.New(amqp.Options{
 		Address:      "amqp://user:pass@localhost:5672/",
 		Queue:        "cerra",
 		ExchangeName: "cerra-exchange",

@@ -25,9 +25,9 @@ jobs:
         run: |
           go get -v -t -d ./...
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: v1.60
+          version: v2.0
       - name: upload golangci-lint results
         uses: actions/upload-artifact@v4
         with:
