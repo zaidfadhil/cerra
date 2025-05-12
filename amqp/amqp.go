@@ -21,9 +21,9 @@ type Options struct {
 	RoutingKey   string
 }
 
-var _ cerra.Backend = (*rabbiMQBackend)(nil)
+var _ cerra.Backend = (*amqpBackend)(nil)
 
-type rabbiMQBackend struct {
+type amqpBackend struct {
 	options Options
 
 	connection *amqp.Connection
@@ -35,8 +35,8 @@ type rabbiMQBackend struct {
 	stopSync  sync.Once
 }
 
-func New(options Options) *rabbiMQBackend {
-	b := &rabbiMQBackend{
+func New(options Options) *amqpBackend {
+	b := &amqpBackend{
 		tasks:   make(chan amqp.Delivery),
 		stop:    make(chan struct{}),
 		options: defaultOptions(options),
@@ -78,7 +78,7 @@ func New(options Options) *rabbiMQBackend {
 	return b
 }
 
-func (b *rabbiMQBackend) Enqueue(task *cerra.Task) error {
+func (b *amqpBackend) Enqueue(task *cerra.Task) error {
 	encodedTask, err := task.Encode()
 	if err != nil {
 		return err
@@ -99,7 +99,7 @@ func (b *rabbiMQBackend) Enqueue(task *cerra.Task) error {
 		})
 }
 
-func (b *rabbiMQBackend) Dequeue() (*cerra.Task, error) {
+func (b *amqpBackend) Dequeue() (*cerra.Task, error) {
 	err := b.consumer()
 	if err != nil {
 		return nil, cerra.ErrInActiveQueue
@@ -128,21 +128,21 @@ loop:
 	return nil, cerra.ErrEmtpyQueue
 }
 
-func (b *rabbiMQBackend) Close() (err error) {
+func (b *amqpBackend) Close() (err error) {
 	b.stopSync.Do(func() {
 		close(b.stop)
 		if err = b.channel.Cancel(b.options.Queue, true); err != nil {
-			log.Printf("rabbitmq channel close error: %v", err)
+			log.Printf("amqp channel close error: %v", err)
 		}
 
 		if err = b.connection.Close(); err != nil {
-			log.Printf("rabbitmq connection close error: %v", err)
+			log.Printf("amqp connection close error: %v", err)
 		}
 	})
 	return err
 }
 
-func (b *rabbiMQBackend) consumer() (err error) {
+func (b *amqpBackend) consumer() (err error) {
 	b.startSync.Do(func() {
 		qName, err := b.bind()
 		if err != nil {
@@ -168,7 +168,7 @@ func (b *rabbiMQBackend) consumer() (err error) {
 	return err
 }
 
-func (b *rabbiMQBackend) bind() (string, error) {
+func (b *amqpBackend) bind() (string, error) {
 	q, err := b.channel.QueueDeclare(
 		b.options.Queue,
 		true,

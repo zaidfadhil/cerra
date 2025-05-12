@@ -9,14 +9,14 @@ import (
 )
 
 func main() {
-	redisueue := redis.New(redis.Options{
+	redisQueue := redis.New(redis.Options{
 		Address:  "localhost:6379",
 		Password: "redis",
 		Stream:   "cerra",
 		Group:    "cerra",
 		Consumer: "cerra",
 	})
-	queue := cerra.NewQueue(redisueue, 0)
+	queue := cerra.NewQueue(redisQueue, 0)
 
 	for i := 0; i < 100; i++ {
 		task := cerra.NewTaskWithID(fmt.Sprint(i), []byte(fmt.Sprint(i)))

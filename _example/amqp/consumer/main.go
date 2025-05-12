@@ -12,19 +12,19 @@ import (
 )
 
 func handleTask(ctx context.Context, t *cerra.Task) error {
-	fmt.Println("get", string(t.Payload))
+	fmt.Println("handle task:", string(t.Payload))
 	return nil
 }
 
 func main() {
-	rabbitQueue := amqp.New(amqp.Options{
+	amqpQueue := amqp.New(amqp.Options{
 		Address:      "amqp://user:pass@localhost:5672/",
 		Queue:        "cerra",
 		ExchangeName: "cerra-exchange",
 		ExchangeType: "direct",
 		RoutingKey:   "cerra-key",
 	})
-	queue := cerra.NewQueue(rabbitQueue, 2)
+	queue := cerra.NewQueue(amqpQueue, 2)
 
 	queue.AddHandler(handleTask)
 

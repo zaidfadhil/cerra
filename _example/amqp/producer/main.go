@@ -9,14 +9,14 @@ import (
 )
 
 func main() {
-	rabbitQueue := amqp.New(amqp.Options{
+	amqpQueue := amqp.New(amqp.Options{
 		Address:      "amqp://user:pass@localhost:5672/",
 		Queue:        "cerra",
 		ExchangeName: "cerra-exchange",
 		ExchangeType: "direct",
 		RoutingKey:   "cerra-key",
 	})
-	queue := cerra.NewQueue(rabbitQueue, 0)
+	queue := cerra.NewQueue(amqpQueue, 0)
 
 	for i := 0; i < 100; i++ {
 		task := cerra.NewTask([]byte(fmt.Sprint(i)))

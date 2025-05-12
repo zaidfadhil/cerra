@@ -9,7 +9,7 @@ import (
 	"github.com/zaidfadhil/cerra/amqp"
 )
 
-func TestRabbitmqEnqueue(t *testing.T) {
+func TestAmqpEnqueue(t *testing.T) {
 	backend := amqp.New(amqp.Options{
 		Address: "amqp://user:pass@localhost:5672",
 	})
@@ -23,13 +23,13 @@ func TestRabbitmqEnqueue(t *testing.T) {
 
 	err := queue.Enqueue(task)
 	if err != nil {
-		t.Errorf("rabbitmq enqueue error: %v", err)
+		t.Errorf("amqp enqueue error: %v", err)
 	}
 
 	time.Sleep(50 * time.Millisecond)
 }
 
-func TestRabbitmqDequeue(t *testing.T) {
+func TestAmqpDequeue(t *testing.T) {
 	backend := amqp.New(amqp.Options{
 		Address: "amqp://user:pass@localhost:5672",
 	})
@@ -44,7 +44,7 @@ func TestRabbitmqDequeue(t *testing.T) {
 	}
 	err := queue.Enqueue(task)
 	if err != nil {
-		t.Errorf("rabbitmq enqueue error: %v", err)
+		t.Errorf("amqp enqueue error: %v", err)
 	}
 
 	time.Sleep(50 * time.Millisecond)

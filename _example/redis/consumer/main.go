@@ -12,19 +12,19 @@ import (
 )
 
 func handleTask(ctx context.Context, t *cerra.Task) error {
-	fmt.Println("get", t)
+	fmt.Println("handle task:", t)
 	return nil
 }
 
 func main() {
-	redisueue := redis.New(redis.Options{
+	redisQueue := redis.New(redis.Options{
 		Address:  "localhost:6379",
 		Password: "redis",
 		Stream:   "cerra",
 		Group:    "cerra",
 		Consumer: "cerra",
 	})
-	queue := cerra.NewQueue(redisueue, 2)
+	queue := cerra.NewQueue(redisQueue, 2)
 
 	queue.AddHandler(handleTask)
 
