@@ -46,8 +46,8 @@ func (t *Task) Encode() ([]byte, error) {
 	return json.Marshal(t)
 }
 
-func (t *Task) ToMap() map[string]interface{} {
-	return map[string]interface{}{
+func (t *Task) ToMap() map[string]any {
+	return map[string]any{
 		"id":          t.ID,
 		"payload":     t.Payload,
 		"timeout":     t.Timeout,
