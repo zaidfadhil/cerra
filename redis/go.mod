@@ -4,7 +4,7 @@ go 1.24
 
 require (
 	github.com/redis/go-redis/v9 v9.11.0
-	github.com/zaidfadhil/cerra v0.1.1
+	github.com/zaidfadhil/cerra v0.1.2
 )
 
 require (
