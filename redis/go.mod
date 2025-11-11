@@ -3,8 +3,8 @@ module github.com/zaidfadhil/cerra/redis
 go 1.24
 
 require (
-	github.com/redis/go-redis/v9 v9.15.0
-	github.com/zaidfadhil/cerra v0.1.3
+	github.com/redis/go-redis/v9 v9.16.0
+	github.com/zaidfadhil/cerra v0.1.4
 )
 
 require (
