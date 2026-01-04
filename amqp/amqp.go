@@ -198,9 +198,6 @@ func (b *amqpBackend) bind() (string, error) {
 }
 
 func defaultOptions(opts Options) Options {
-	if opts.Address == "" {
-		opts.Address = "amqp://user:pass@localhost:5672"
-	}
 	if opts.Queue == "" {
 		opts.Queue = "cerra-queue"
 	}

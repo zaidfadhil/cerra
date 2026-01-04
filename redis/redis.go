@@ -215,9 +215,6 @@ func (b *redisBackend) ack(ctx context.Context, m redis.XMessage) {
 }
 
 func defaultOptions(opts Options) Options {
-	if opts.Address == "" {
-		opts.Address = "localhost:6379"
-	}
 	if opts.Stream == "" {
 		opts.Stream = "cerra-stream"
 	}
